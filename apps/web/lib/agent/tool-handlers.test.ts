@@ -1,0 +1,84 @@
+import { describe, it, expect, vi } from 'vitest';
+import { executeToolCall } from './tool-handlers';
+
+// Mock encadenable de Supabase: cada método devuelve `this` y registra la llamada,
+// hasta que se resuelve con .then() (simulando el thenable de supabase-js).
+function createMockSupabase(resolvedValue: { data: unknown; error: unknown }) {
+  const calls: { method: string; args: unknown[] }[] = [];
+  const chain: any = {
+    from: (...args: unknown[]) => (calls.push({ method: 'from', args }), chain),
+    select: (...args: unknown[]) => (calls.push({ method: 'select', args }), chain),
+    insert: (...args: unknown[]) => (calls.push({ method: 'insert', args }), chain),
+    eq: (...args: unknown[]) => (calls.push({ method: 'eq', args }), chain),
+    single: () => (calls.push({ method: 'single', args: [] }), Promise.resolve(resolvedValue)),
+    then: (resolve: (v: unknown) => void) => resolve(resolvedValue),
+  };
+  return { client: chain, calls };
+}
+
+const TENANT_A = 'tenant-a-uuid';
+
+describe('executeToolCall — aislamiento multi-tenant', () => {
+  it('consultar_disponibilidad filtra explícitamente por tenant_id', async () => {
+    const { client, calls } = createMockSupabase({ data: [], error: null });
+    await executeToolCall('consultar_disponibilidad', { fecha: '2026-10-01' }, {
+      tenantId: TENANT_A,
+      tier: 'base',
+      supabase: client,
+    });
+    const eqCalls = calls.filter((c) => c.method === 'eq');
+    expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
+  });
+
+  it('obtener_catalogo filtra explícitamente por tenant_id', async () => {
+    const { client, calls } = createMockSupabase({ data: [], error: null });
+    await executeToolCall('obtener_catalogo', {}, { tenantId: TENANT_A, tier: 'base', supabase: client });
+    const eqCalls = calls.filter((c) => c.method === 'eq');
+    expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
+  });
+
+  it('registrar_cita inserta con tenant_id seteado explícitamente en el payload', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: '1' }, error: null });
+    await executeToolCall(
+      'registrar_cita',
+      { customer_name: 'Juan', fecha: '2026-10-01', hora: '10:00' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client }
+    );
+    const insertCall = calls.find((c) => c.method === 'insert');
+    expect(insertCall).toBeDefined();
+    const payload = insertCall!.args[0] as { tenant_id: string };
+    expect(payload.tenant_id).toBe(TENANT_A);
+  });
+
+  it('procesar_pago es rechazado si el tier es base, incluso si por error se invoca', async () => {
+    const { client } = createMockSupabase({ data: null, error: null });
+    const result = await executeToolCall('procesar_pago', { monto: 5000 }, {
+      tenantId: TENANT_A,
+      tier: 'base',
+      supabase: client,
+    });
+    expect(result.error).toBeDefined();
+    expect(result.error).toMatch(/tier|pro|no disponible/i);
+  });
+
+  it('procesar_pago en tier pro devuelve un stub (Fase 9 no implementada todavía)', async () => {
+    const { client } = createMockSupabase({ data: null, error: null });
+    const result = await executeToolCall('procesar_pago', { monto: 5000 }, {
+      tenantId: TENANT_A,
+      tier: 'pro',
+      supabase: client,
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.data).toMatchObject({ status: 'not_implemented' });
+  });
+
+  it('devuelve error controlado para un nombre de tool desconocido', async () => {
+    const { client } = createMockSupabase({ data: null, error: null });
+    const result = await executeToolCall('tool_inexistente', {}, {
+      tenantId: TENANT_A,
+      tier: 'base',
+      supabase: client,
+    });
+    expect(result.error).toBeDefined();
+  });
+});
