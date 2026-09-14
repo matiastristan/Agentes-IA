@@ -2,16 +2,27 @@
 
 SaaS multi-tenant con Agente IA que responde WhatsApp 24/7, registra citas y gestiona catálogo para pequeños negocios (barberías, clínicas, calzado, pet shop, etc.).
 
-## Estado actual (FASE 1 en progreso)
+## Estado actual (FASE 1 y FASE 2 completas)
 
-✅ Monorepo pnpm + Next.js 16 + Tailwind 4
-✅ Design tokens de 3 capas (primitive → semantic → component), 3 paletas dinámicas
-✅ Componentes base: `Button`, `BadgeTemperatura` (con tests, TDD)
-✅ Schema multi-tenant ya aplicado en Supabase (proyecto **AgentesIA**, `afleydeeytyfgpytlimm`):
-   - Tablas: `negocio`, `productos`, `conversations`, `messages`, `citas`
-   - RLS habilitado + policy `tenant_id = (select auth.uid())` en las 5 (optimizada, sin warnings del linter de Supabase)
-⏳ Pendiente: Card, Input, KPICard, Toggle (mismo patrón TDD que Button/BadgeTemperatura) — quedan para Fase 4 o antes si se prioriza
-⏳ Pendiente: push a GitHub (repo `matiastristan/Agentes-IA`)
+### FASE 1 — Architecture & Design System ✅
+- Monorepo pnpm + Next.js 16 + Tailwind 4
+- Design tokens de 3 capas (primitive → semantic → component), 3 paletas dinámicas
+- Componentes base: `Button`, `BadgeTemperatura`, `Card`, `Input`, `KPICard`, `Toggle` (todos con tests, TDD)
+- Schema multi-tenant aplicado en Supabase (proyecto **AgentesIA**, `afleydeeytyfgpytlimm`):
+  - Tablas: `negocio`, `productos`, `conversations`, `messages`, `citas`
+  - RLS habilitado + policy `tenant_id = (select auth.uid())` en las 5 (optimizada, sin warnings del linter de Supabase)
+
+### FASE 2 — Auth & Supabase ✅
+- Trigger `handle_new_user()`: al registrarse, se crea automáticamente la fila `negocio` con `tenant_id = auth.users.id` (probado en Supabase real)
+- `lib/supabase/client.ts` / `lib/supabase/server.ts` — clientes tipados con `Database` real generado desde el schema
+- `proxy.ts` (antes `middleware.ts`, migrado a la convención de Next 16) — refresca sesión y protege `/dashboard`
+- Páginas `/login` y `/signup` con validación (`validate-auth-credentials`, testeada) usando los componentes del design system
+- `/dashboard` — Server Component protegido que lee el `negocio` del usuario logueado
+
+**33/33 tests pasando** (30 en `apps/web` + 3 en `packages/design-tokens`).
+
+⏳ Pendiente: probar el signup real end-to-end desde tu máquina (este entorno no tiene salida de red hacia Supabase, solo vía MCP)
+⏳ Próximo: FASE 3 — Agente IA Stateless (system prompt engine, tools multi-tenant, webhook WhatsApp)
 
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
