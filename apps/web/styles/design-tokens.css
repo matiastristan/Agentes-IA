@@ -1,0 +1,71 @@
+:root {
+  --gray-50: #FAFAFA;
+  --gray-100: #F5F5F5;
+  --gray-200: #E0E0E0;
+  --gray-300: #CBD5E1;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --red-500: #EF4444; --red-600: #DC2626; --red-50: #FEF2F2;
+  --amber-500: #F59E0B; --amber-600: #D97706; --amber-50: #FFFBEB;
+  --green-500: #22C55E; --green-600: #16A34A; --green-50: #F0FDF4;
+  --blue-500: #3B82F6; --blue-600: #2563EB; --blue-50: #EFF6FF;
+
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --color-background: var(--gray-50);
+  --color-foreground: var(--gray-900);
+  --color-card: #FFFFFF;
+  --color-primary: var(--palette-primary-500);
+  --color-primary-hover: var(--palette-primary-600);
+  --color-primary-active: var(--palette-primary-700);
+  --color-primary-foreground: #FFFFFF;
+  --color-primary-tint: var(--palette-primary-50);
+  --color-secondary: var(--palette-secondary-500);
+  --color-accent: var(--palette-accent-500);
+  --color-bg-tint: var(--palette-bg-tint);
+  --color-text-primary: var(--gray-900);
+  --color-text-secondary: var(--gray-500);
+  --color-text-muted: var(--gray-400);
+  --color-border: var(--gray-200);
+  --color-ring: var(--color-primary);
+  --color-success: var(--green-600); --color-success-bg: var(--green-50);
+  --color-warning: var(--amber-600); --color-warning-bg: var(--amber-50);
+  --color-error: var(--red-600); --color-error-bg: var(--red-50);
+  --color-temp-frio: #2563EB; --color-temp-frio-bg: #EFF6FF;
+  --color-temp-moderado: #D97706; --color-temp-moderado-bg: #FFFBEB;
+  --color-temp-caliente: #DC2626; --color-temp-caliente-bg: #FEF2F2;
+}
+
+[data-palette="warm"] {
+  --palette-primary-50: #FFF1EC;
+  --palette-primary-500: #EF6B4B;
+  --palette-primary-600: #DA5636;
+  --palette-primary-700: #B8432A;
+  --palette-secondary-500: #FFB347;
+  --palette-accent-500: #FF6B6B;
+  --palette-bg-tint: #FFF5F2;
+}
+
+[data-palette="cool"] {
+  --palette-primary-50: #EEF0FF;
+  --palette-primary-500: #4B5EFC;
+  --palette-primary-600: #3B4DE0;
+  --palette-primary-700: #2E3EBD;
+  --palette-secondary-500: #8B9EFF;
+  --palette-accent-500: #7C3AED;
+  --palette-bg-tint: #F0F4FF;
+}
+
+[data-palette="vibrant"] {
+  --palette-primary-50: #ECFDF5;
+  --palette-primary-500: #10B981;
+  --palette-primary-600: #0D9B6C;
+  --palette-primary-700: #0A7D57;
+  --palette-secondary-500: #F59E0B;
+  --palette-accent-500: #06B6D4;
+  --palette-bg-tint: #F0FDF4;
+}

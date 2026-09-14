@@ -1,0 +1,9 @@
+{
+  "name": "@saas/design-tokens",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "devDependencies": {
+    "vitest": "^5.0.0"
+  }
+}

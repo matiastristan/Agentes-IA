@@ -1,0 +1,23 @@
+{
+  "gray": {
+    "50": "#FAFAFA", "100": "#F5F5F5", "200": "#E0E0E0", "300": "#CBD5E1",
+    "400": "#9CA3AF", "500": "#6B7280", "600": "#4B5563", "700": "#374151",
+    "800": "#1F2937", "900": "#111827"
+  },
+  "palettes": {
+    "warm": { "primary50": "#FFF1EC", "primary500": "#EF6B4B", "primary600": "#DA5636", "primary700": "#B8432A", "secondary500": "#FFB347", "accent500": "#FF6B6B", "bgTint": "#FFF5F2" },
+    "cool": { "primary50": "#EEF0FF", "primary500": "#4B5EFC", "primary600": "#3B4DE0", "primary700": "#2E3EBD", "secondary500": "#8B9EFF", "accent500": "#7C3AED", "bgTint": "#F0F4FF" },
+    "vibrant": { "primary50": "#ECFDF5", "primary500": "#10B981", "primary600": "#0D9B6C", "primary700": "#0A7D57", "secondary500": "#F59E0B", "accent500": "#06B6D4", "bgTint": "#F0FDF4" }
+  },
+  "state": {
+    "red500": "#EF4444", "red600": "#DC2626", "red50": "#FEF2F2",
+    "amber500": "#F59E0B", "amber600": "#D97706", "amber50": "#FFFBEB",
+    "green500": "#22C55E", "green600": "#16A34A", "green50": "#F0FDF4",
+    "blue500": "#3B82F6", "blue600": "#2563EB", "blue50": "#EFF6FF"
+  },
+  "tempColors": {
+    "frio": { "text": "#2563EB", "bg": "#EFF6FF" },
+    "moderado": { "text": "#D97706", "bg": "#FFFBEB" },
+    "caliente": { "text": "#DC2626", "bg": "#FEF2F2" }
+  }
+}
