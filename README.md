@@ -22,7 +22,22 @@ SaaS multi-tenant con Agente IA que responde WhatsApp 24/7, registra citas y ges
 **33/33 tests pasando** (30 en `apps/web` + 3 en `packages/design-tokens`).
 
 ⏳ Pendiente: probar el signup real end-to-end desde tu máquina (este entorno no tiene salida de red hacia Supabase, solo vía MCP)
-⏳ Próximo: FASE 3 — Agente IA Stateless (system prompt engine, tools multi-tenant, webhook WhatsApp)
+
+### FASE 3 — Agente IA Stateless ✅
+- `lib/agent/system-prompt.ts` — genera el system prompt dinámico por negocio (nombre, tono, horarios, catálogo, tools según tier)
+- `lib/agent/tools.ts` — 5 tool definitions en formato OpenRouter; tier base ve 3, tier pro ve las 5 (incluye `procesar_pago`, `aplicar_descuento`)
+- `lib/agent/tool-handlers.ts` — ejecuta cada tool con **aislamiento multi-tenant explícito** (no confía solo en RLS, porque el webhook usa `service_role` que la bypasea) + bloqueo de `procesar_pago`/`aplicar_descuento` si el tier no es pro, como defensa en profundidad
+- `lib/agent/openrouter-client.ts` — wrapper con retry (3 intentos)
+- `lib/agent/handle-incoming-message.ts` — orquestador: busca negocio → historial → arma prompt → llama al modelo → ejecuta tool si corresponde (segundo round-trip) → persiste → responde por WhatsApp
+- `lib/whatsapp/verify-signature.ts` — valida la firma HMAC-SHA256 de Meta (timing-safe, contra tampering)
+- `lib/whatsapp/send-message.ts` — envía respuestas vía Meta Graph API
+- `app/api/webhooks/whatsapp/route.ts` — `GET` (verificación de Meta) + `POST` (mensajes entrantes)
+- `lib/supabase/service-client.ts` — cliente con `service_role`, solo para el webhook (documentado el riesgo de que bypasea RLS)
+
+**65/65 tests pasando** (62 en `apps/web` + 3 en `packages/design-tokens`).
+
+⏳ Pendiente: probar el webhook con un número de WhatsApp real (Fase 5) y credenciales reales de OpenRouter/Meta en `.env.local`
+⏳ Próximo: FASE 4 — Frontend CRM (páginas de Conversaciones, Catálogo, Configuración, Analytics)
 
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
