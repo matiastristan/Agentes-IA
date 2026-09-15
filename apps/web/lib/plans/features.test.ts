@@ -47,4 +47,17 @@ describe('hasFeature', () => {
     expect(hasFeature('base', [], 'recordatorios_configurables')).toBe(false);
     expect(hasFeature('base', [], 'lista_espera_automatica')).toBe(false);
   });
+
+  it('multi_recurso, carga_manual_turnos y mobile_vista_scroll_horizontal NO están en ningún tier por default', () => {
+    expect(hasFeature('base', [], 'multi_recurso')).toBe(false);
+    expect(hasFeature('pro', [], 'multi_recurso')).toBe(false);
+    expect(hasFeature('premium', [], 'multi_recurso')).toBe(false);
+    expect(hasFeature('premium', [], 'carga_manual_turnos')).toBe(false);
+    expect(hasFeature('premium', [], 'mobile_vista_scroll_horizontal')).toBe(false);
+  });
+
+  it('un override habilita multi_recurso para un negocio puntual sin importar el tier', () => {
+    const overrides = [{ feature_key: 'multi_recurso', habilitado: true }];
+    expect(hasFeature('base', overrides, 'multi_recurso')).toBe(true);
+  });
 });

@@ -18,7 +18,10 @@ export type FeatureKey =
   | 'recordatorios_configurables'
   | 'lista_espera_automatica'
   | 'reprogramacion_self_service'
-  | 'gestion_senas';
+  | 'gestion_senas'
+  | 'multi_recurso'
+  | 'carga_manual_turnos'
+  | 'mobile_vista_scroll_horizontal';
 
 const BASE_FEATURES: FeatureKey[] = [
   'agente_responde',
