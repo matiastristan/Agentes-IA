@@ -179,6 +179,16 @@ por las mismas políticas de Meta ya documentadas), y casi seguro plantillas de
 Meta aprobadas para el envío masivo (mismo mecanismo que `plantillas_meta_habilitadas`
 de C1). Se diseña en detalle cuando se llegue a D.
 
+**Sistema completo de cobro y logística** (para sub-proyecto B en una fase
+posterior a la actual): facturación real (comprobantes fiscales), tracking de
+pagos más allá del cobro puntual vía MercadoPago (estados de cuenta, saldos),
+y logística completa de envíos — fechas de entrega estimadas, demoras,
+devoluciones. El objetivo final es que el agente pueda responderle a un
+cliente por WhatsApp preguntas como "¿cuándo llega mi pedido?" o "quiero
+devolver esto" con datos reales, no solo confirmar la venta. Requiere definir
+una tabla de envíos/logística y probablemente integración con un proveedor de
+correo/logística — se diseña con su propio brainstorming cuando se priorice.
+
 ## Testing
 
 - `hasFeature()` — tests unitarios cubriendo: feature en tier base, feature
