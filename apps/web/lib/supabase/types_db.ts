@@ -123,6 +123,44 @@ export type Database = {
           },
         ]
       }
+      combos: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          precio: number
+          productos_incluidos: Json
+          tenant_id: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          precio: number
+          productos_incluidos: Json
+          tenant_id: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          precio?: number
+          productos_incluidos?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
@@ -395,28 +433,40 @@ export type Database = {
       productos: {
         Row: {
           activo: boolean
+          atributos: Json
           created_at: string
           id: string
           nombre: string
+          precio: number | null
+          stock: number
           tenant_id: string
+          umbral_alerta_stock: number | null
           updated_at: string
           variantes: Json
         }
         Insert: {
           activo?: boolean
+          atributos?: Json
           created_at?: string
           id?: string
           nombre: string
+          precio?: number | null
+          stock?: number
           tenant_id: string
+          umbral_alerta_stock?: number | null
           updated_at?: string
           variantes?: Json
         }
         Update: {
           activo?: boolean
+          atributos?: Json
           created_at?: string
           id?: string
           nombre?: string
+          precio?: number | null
+          stock?: number
           tenant_id?: string
+          umbral_alerta_stock?: number | null
           updated_at?: string
           variantes?: Json
         }
@@ -572,6 +622,96 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "servicios_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      venta_items: {
+        Row: {
+          cantidad: number
+          combo_id: string | null
+          es_combo: boolean
+          id: string
+          precio_unitario: number
+          producto_id: string | null
+          venta_id: string
+        }
+        Insert: {
+          cantidad: number
+          combo_id?: string | null
+          es_combo?: boolean
+          id?: string
+          precio_unitario: number
+          producto_id?: string | null
+          venta_id: string
+        }
+        Update: {
+          cantidad?: number
+          combo_id?: string | null
+          es_combo?: boolean
+          id?: string
+          precio_unitario?: number
+          producto_id?: string | null
+          venta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venta_items_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_items_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ventas: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          customer_name: string | null
+          estado: string
+          id: string
+          tenant_id: string
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          estado?: string
+          id?: string
+          tenant_id: string
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          estado?: string
+          id?: string
+          tenant_id?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "negocio"
