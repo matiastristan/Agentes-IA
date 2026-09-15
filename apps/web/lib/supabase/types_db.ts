@@ -21,6 +21,11 @@ export type Database = {
           fecha: string
           hora: string
           id: string
+          recurso_id: string | null
+          sena_metodo: string | null
+          sena_pagada: boolean
+          sena_requerida: boolean
+          servicio_id: string | null
           tenant_id: string
         }
         Insert: {
@@ -31,6 +36,11 @@ export type Database = {
           fecha: string
           hora: string
           id?: string
+          recurso_id?: string | null
+          sena_metodo?: string | null
+          sena_pagada?: boolean
+          sena_requerida?: boolean
+          servicio_id?: string | null
           tenant_id: string
         }
         Update: {
@@ -41,9 +51,28 @@ export type Database = {
           fecha?: string
           hora?: string
           id?: string
+          recurso_id?: string | null
+          sena_metodo?: string | null
+          sena_pagada?: boolean
+          sena_requerida?: boolean
+          servicio_id?: string | null
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "citas_recurso_id_fkey"
+            columns: ["recurso_id"]
+            isOneToOne: false
+            referencedRelation: "recursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "citas_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "citas_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -147,6 +176,61 @@ export type Database = {
           },
         ]
       }
+      lista_espera: {
+        Row: {
+          created_at: string
+          estado: string
+          franja_horaria_deseada: Json
+          id: string
+          phone: string
+          recurso_id: string | null
+          servicio_id: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          estado?: string
+          franja_horaria_deseada: Json
+          id?: string
+          phone: string
+          recurso_id?: string | null
+          servicio_id?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          estado?: string
+          franja_horaria_deseada?: Json
+          id?: string
+          phone?: string
+          recurso_id?: string | null
+          servicio_id?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lista_espera_recurso_id_fkey"
+            columns: ["recurso_id"]
+            isOneToOne: false
+            referencedRelation: "recursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_espera_servicio_id_fkey"
+            columns: ["servicio_id"]
+            isOneToOne: false
+            referencedRelation: "servicios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lista_espera_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -209,6 +293,7 @@ export type Database = {
           plan_estado_pago: string
           plan_fecha_alta: string | null
           plan_fecha_vencimiento: string | null
+          plantillas_meta_habilitadas: boolean
           rubro: string | null
           system_prompt: string | null
           system_prompt_history: Json
@@ -235,6 +320,7 @@ export type Database = {
           plan_estado_pago?: string
           plan_fecha_alta?: string | null
           plan_fecha_vencimiento?: string | null
+          plantillas_meta_habilitadas?: boolean
           rubro?: string | null
           system_prompt?: string | null
           system_prompt_history?: Json
@@ -261,6 +347,7 @@ export type Database = {
           plan_estado_pago?: string
           plan_fecha_alta?: string | null
           plan_fecha_vencimiento?: string | null
+          plantillas_meta_habilitadas?: boolean
           rubro?: string | null
           system_prompt?: string | null
           system_prompt_history?: Json
@@ -336,6 +423,155 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "productos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      recordatorios_config: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          mensaje_template: string | null
+          minutos_antes: number
+          tenant_id: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          mensaje_template?: string | null
+          minutos_antes: number
+          tenant_id: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          mensaje_template?: string | null
+          minutos_antes?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recordatorios_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      recursos: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          nombre: string
+          subtipo: string | null
+          tenant_id: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+          subtipo?: string | null
+          tenant_id: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+          subtipo?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recursos_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      reglas_reprogramacion: {
+        Row: {
+          created_at: string
+          horas_minimas_anticipacion: number
+          id: string
+          permite_sin_perder_sena: boolean
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          horas_minimas_anticipacion?: number
+          id?: string
+          permite_sin_perder_sena?: boolean
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          horas_minimas_anticipacion?: number
+          id?: string
+          permite_sin_perder_sena?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reglas_reprogramacion_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
+      servicios: {
+        Row: {
+          activo: boolean
+          created_at: string
+          duracion_minutos: number
+          horario_override: Json | null
+          id: string
+          nombre: string
+          precio: number
+          promociones: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          duracion_minutos: number
+          horario_override?: Json | null
+          id?: string
+          nombre: string
+          precio: number
+          promociones?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          duracion_minutos?: number
+          horario_override?: Json | null
+          id?: string
+          nombre?: string
+          precio?: number
+          promociones?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicios_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "negocio"
