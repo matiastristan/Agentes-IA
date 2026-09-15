@@ -169,6 +169,16 @@ cobrás vos. Requeriría un campo `negocio.openrouter_api_key_propia` (encriptad
 igual que `access_token` de Meta) y que `callOpenRouter()` use esa key si existe,
 si no la key compartida de la plataforma. Feature de escala, no para el MVP.
 
+**Gestión de clientes y campañas masivas** (para sub-proyecto D): más allá de
+gestionar conversaciones puntuales, el CRM del negocio necesita una vista de
+"Clientes" que crezca con la tabla `clientes` (ya creada en este sub-proyecto A)
+— historial, segmentación, y la capacidad de lanzar campañas masivas de
+WhatsApp (ej. promociones a todos los clientes de un rubro/franja). Requiere:
+opt-in/consentimiento explícito por cliente (no se puede mandar masivo sin eso,
+por las mismas políticas de Meta ya documentadas), y casi seguro plantillas de
+Meta aprobadas para el envío masivo (mismo mecanismo que `plantillas_meta_habilitadas`
+de C1). Se diseña en detalle cuando se llegue a D.
+
 ## Testing
 
 - `hasFeature()` — tests unitarios cubriendo: feature en tier base, feature
