@@ -10,6 +10,7 @@ interface NegocioLookup {
   tier: 'base' | 'pro';
   phone_number_id: string;
   access_token: string | null;
+  estado_cuenta?: string;
 }
 
 interface IncomingMessage {
@@ -56,6 +57,10 @@ export async function handleIncomingMessage(
   const negocio = await deps.findNegocioByPhoneNumberId(incoming.phoneNumberId);
 
   if (!negocio) {
+    return { handled: false };
+  }
+
+  if (negocio.estado_cuenta && negocio.estado_cuenta !== 'activo') {
     return { handled: false };
   }
 

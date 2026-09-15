@@ -113,4 +113,18 @@ describe('handleIncomingMessage', () => {
     );
     expect(deps.loadRecentMessages).toHaveBeenCalledWith('tenant-a', '5491100000000');
   });
+
+  it('si el negocio no está activo (estado_cuenta), no se procesa el mensaje ni se llama a OpenRouter', async () => {
+    const deps = makeDeps({
+      findNegocioByPhoneNumberId: vi
+        .fn()
+        .mockResolvedValue({ ...NEGOCIO_A, estado_cuenta: 'suspendido_pago' }),
+    });
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(deps.callOpenRouter).not.toHaveBeenCalled();
+    expect(result.handled).toBe(false);
+  });
 });
