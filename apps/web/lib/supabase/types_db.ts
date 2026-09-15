@@ -12,6 +12,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admins: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          password_hash: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          password_hash: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          password_hash?: string
+        }
+        Relationships: []
+      }
       citas: {
         Row: {
           created_at: string
@@ -214,6 +235,41 @@ export type Database = {
           },
         ]
       }
+      facturacion_negocio: {
+        Row: {
+          concepto: string
+          created_at: string
+          fecha: string
+          id: string
+          monto: number
+          tenant_id: string
+        }
+        Insert: {
+          concepto: string
+          created_at?: string
+          fecha: string
+          id?: string
+          monto: number
+          tenant_id: string
+        }
+        Update: {
+          concepto?: string
+          created_at?: string
+          fecha?: string
+          id?: string
+          monto?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facturacion_negocio_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       lista_espera: {
         Row: {
           created_at: string
@@ -321,6 +377,7 @@ export type Database = {
           color_palette: string
           created_at: string
           dashboard_view: string
+          estado_cuenta: string
           horarios: Json
           id: string
           logo_url: string | null
@@ -348,6 +405,7 @@ export type Database = {
           color_palette?: string
           created_at?: string
           dashboard_view?: string
+          estado_cuenta?: string
           horarios?: Json
           id?: string
           logo_url?: string | null
@@ -375,6 +433,7 @@ export type Database = {
           color_palette?: string
           created_at?: string
           dashboard_view?: string
+          estado_cuenta?: string
           horarios?: Json
           id?: string
           logo_url?: string | null
