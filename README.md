@@ -71,6 +71,23 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-crm-turnos-citas-design.
 
 ⏳ Próximo: **C2** (Frontend — calendario, tarjetas de turnos, páginas de gestión de servicios/recursos/recordatorios), después **B** (CRM Ventas) y **D** (Panel Admin)
 
+### Sub-proyecto C2 — CRM Turnos/Citas: Frontend ✅ (base funcional)
+Ver spec completo en `docs/superpowers/specs/2026-09-15-crm-turnos-frontend-c2-design.md`.
+
+- `pickCalendarView()` — auto-switch de vista Semana/Día según cantidad de recursos activos
+- 3 features nuevas sin tier default (`multi_recurso`, `carga_manual_turnos`, `mobile_vista_scroll_horizontal`) — se activan por negocio puntual vía `negocio_feature_overrides`, mismo mecanismo de upsell que `plantillas_meta_habilitadas`
+- Componentes `TurnoCard` (4 estados visuales) y `NoShowBadge`
+- 4 páginas nuevas: `/turnos` (calendario), `/turnos/servicios`, `/turnos/recursos` (con el guardrail de multi-recurso visible), `/turnos/configuracion` (con el guardrail de recordatorios de C1 ya renderizado)
+- Se encontró y corrigió un bug real: `/turnos` no estaba en las rutas protegidas del `proxy.ts` — daba 500 en vez de redirigir a login
+
+**Nota de alcance**: esta es la base funcional completa (datos reales, gating real, componentes testeados). La capa de interacción más rica (grilla visual con columnas por recurso, carrusel swipe mobile, modales de alta) queda para afinar con uso real, como se conversó explícitamente.
+
+**102/102 tests pasando** (99 en `apps/web` + 3 en `packages/design-tokens`).
+
+**Backlog agregado**: gestión de clientes (tabla `clientes` ya existe desde sub-proyecto A) + campañas masivas de WhatsApp — se diseña en detalle en sub-proyecto D.
+
+⏳ Próximo: sub-proyecto **B** (CRM Ventas) o iterar la capa visual de C2 con uso real
+
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
 
