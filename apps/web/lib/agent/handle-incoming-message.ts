@@ -90,6 +90,7 @@ export async function handleIncomingMessage(
     const toolResult = await deps.executeToolCall(toolCall.function.name, args, {
       tenantId: negocio.tenant_id,
       tier: negocio.tier,
+      phone: incoming.from,
     });
 
     const followUp = await deps.callOpenRouter({

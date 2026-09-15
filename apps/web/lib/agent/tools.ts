@@ -86,7 +86,48 @@ const aplicar_descuento: ToolDefinition = {
   },
 };
 
-const BASE_TOOLS = [consultar_disponibilidad, registrar_cita, obtener_catalogo];
+const reprogramar_cita: ToolDefinition = {
+  type: 'function',
+  function: {
+    name: 'reprogramar_cita',
+    description: 'Reprograma una cita existente a una nueva fecha y hora, validando las reglas de anticipación del negocio.',
+    parameters: {
+      type: 'object',
+      properties: {
+        cita_id: { type: 'string', description: 'ID de la cita a reprogramar' },
+        nueva_fecha: { type: 'string', description: 'Nueva fecha en formato YYYY-MM-DD' },
+        nueva_hora: { type: 'string', description: 'Nueva hora en formato HH:MM' },
+      },
+      required: ['cita_id', 'nueva_fecha', 'nueva_hora'],
+    },
+  },
+};
+
+const anotar_lista_espera: ToolDefinition = {
+  type: 'function',
+  function: {
+    name: 'anotar_lista_espera',
+    description: 'Anota al cliente en la lista de espera cuando no hay disponibilidad en la franja horaria pedida.',
+    parameters: {
+      type: 'object',
+      properties: {
+        servicio_id: { type: 'string', description: 'ID del servicio deseado' },
+        fecha: { type: 'string', description: 'Fecha deseada YYYY-MM-DD' },
+        hora_desde: { type: 'string', description: 'Inicio de la franja horaria aceptable HH:MM' },
+        hora_hasta: { type: 'string', description: 'Fin de la franja horaria aceptable HH:MM' },
+      },
+      required: ['servicio_id', 'fecha', 'hora_desde', 'hora_hasta'],
+    },
+  },
+};
+
+const BASE_TOOLS = [
+  consultar_disponibilidad,
+  registrar_cita,
+  obtener_catalogo,
+  reprogramar_cita,
+  anotar_lista_espera,
+];
 const PRO_TOOLS = [...BASE_TOOLS, procesar_pago, aplicar_descuento];
 
 export function getToolsForTier(tier: 'base' | 'pro'): ToolDefinition[] {

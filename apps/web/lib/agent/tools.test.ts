@@ -39,4 +39,10 @@ describe('getToolsForTier', () => {
       expect(tool.function).toHaveProperty('parameters');
     }
   });
+
+  it('tier base incluye reprogramar_cita y anotar_lista_espera (el gating real vive en el handler, no acá)', () => {
+    const tools = getToolsForTier('base');
+    const names = tools.map((t) => t.function.name);
+    expect(names).toEqual(expect.arrayContaining(['reprogramar_cita', 'anotar_lista_espera']));
+  });
 });

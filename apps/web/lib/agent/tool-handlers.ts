@@ -1,6 +1,7 @@
 interface ToolContext {
   tenantId: string;
   tier: 'base' | 'pro';
+  phone: string; // necesario para anotar_lista_espera
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any;
 }
@@ -74,6 +75,53 @@ async function aplicarDescuento(args: { porcentaje: number }, ctx: ToolContext):
   return { data: { status: 'not_implemented', porcentaje: args.porcentaje } };
 }
 
+async function reprogramarCita(
+  args: { cita_id: string; nueva_fecha: string; nueva_hora: string },
+  ctx: ToolContext
+): Promise<ToolResult> {
+  if (ctx.tier === 'base') {
+    return { error: 'Reprogramar turnos no está disponible en tu tier. Necesitás el plan Pro.' };
+  }
+
+  const { data, error } = await ctx.supabase
+    .from('citas')
+    .update({ fecha: args.nueva_fecha, hora: args.nueva_hora, estado: 'reprogramada' })
+    .eq('tenant_id', ctx.tenantId)
+    .eq('id', args.cita_id)
+    .select()
+    .single();
+
+  if (error) return { error: 'No se pudo reprogramar la cita' };
+  return { data };
+}
+
+async function anotarListaEspera(
+  args: { servicio_id: string; fecha: string; hora_desde: string; hora_hasta: string },
+  ctx: ToolContext
+): Promise<ToolResult> {
+  if (ctx.tier === 'base') {
+    return { error: 'La lista de espera no está disponible en tu tier. Necesitás el plan Pro.' };
+  }
+
+  const { data, error } = await ctx.supabase
+    .from('lista_espera')
+    .insert({
+      tenant_id: ctx.tenantId,
+      phone: ctx.phone,
+      servicio_id: args.servicio_id,
+      franja_horaria_deseada: {
+        fecha: args.fecha,
+        hora_desde: args.hora_desde,
+        hora_hasta: args.hora_hasta,
+      },
+    })
+    .select()
+    .single();
+
+  if (error) return { error: 'No se pudo anotar en la lista de espera' };
+  return { data };
+}
+
 export async function executeToolCall(
   toolName: string,
   args: Record<string, unknown>,
@@ -90,6 +138,13 @@ export async function executeToolCall(
       return procesarPago(args as { monto: number }, ctx);
     case 'aplicar_descuento':
       return aplicarDescuento(args as { porcentaje: number }, ctx);
+    case 'reprogramar_cita':
+      return reprogramarCita(args as { cita_id: string; nueva_fecha: string; nueva_hora: string }, ctx);
+    case 'anotar_lista_espera':
+      return anotarListaEspera(
+        args as { servicio_id: string; fecha: string; hora_desde: string; hora_hasta: string },
+        ctx
+      );
     default:
       return { error: `Tool desconocida: ${toolName}` };
   }

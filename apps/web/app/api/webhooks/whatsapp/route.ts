@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       },
       callOpenRouter,
       executeToolCall: (name, args, ctx) =>
-        executeToolCall(name, args, { ...ctx, supabase }),
+        executeToolCall(name, args, { ...ctx, phone: ctx.phone ?? message.from, supabase }),
       sendWhatsAppMessage,
     }
   );

@@ -9,6 +9,7 @@ function createMockSupabase(resolvedValue: { data: unknown; error: unknown }) {
     from: (...args: unknown[]) => (calls.push({ method: 'from', args }), chain),
     select: (...args: unknown[]) => (calls.push({ method: 'select', args }), chain),
     insert: (...args: unknown[]) => (calls.push({ method: 'insert', args }), chain),
+    update: (...args: unknown[]) => (calls.push({ method: 'update', args }), chain),
     eq: (...args: unknown[]) => (calls.push({ method: 'eq', args }), chain),
     single: () => (calls.push({ method: 'single', args: [] }), Promise.resolve(resolvedValue)),
     then: (resolve: (v: unknown) => void) => resolve(resolvedValue),
@@ -25,6 +26,7 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
       tenantId: TENANT_A,
       tier: 'base',
       supabase: client,
+      phone: '5491100000000',
     });
     const eqCalls = calls.filter((c) => c.method === 'eq');
     expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
@@ -32,7 +34,7 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
 
   it('obtener_catalogo filtra explícitamente por tenant_id', async () => {
     const { client, calls } = createMockSupabase({ data: [], error: null });
-    await executeToolCall('obtener_catalogo', {}, { tenantId: TENANT_A, tier: 'base', supabase: client });
+    await executeToolCall('obtener_catalogo', {}, { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' });
     const eqCalls = calls.filter((c) => c.method === 'eq');
     expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
   });
@@ -42,7 +44,7 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     await executeToolCall(
       'registrar_cita',
       { customer_name: 'Juan', fecha: '2026-10-01', hora: '10:00' },
-      { tenantId: TENANT_A, tier: 'base', supabase: client }
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
     );
     const insertCall = calls.find((c) => c.method === 'insert');
     expect(insertCall).toBeDefined();
@@ -56,6 +58,7 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
       tenantId: TENANT_A,
       tier: 'base',
       supabase: client,
+      phone: '5491100000000',
     });
     expect(result.error).toBeDefined();
     expect(result.error).toMatch(/tier|pro|no disponible/i);
@@ -67,6 +70,7 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
       tenantId: TENANT_A,
       tier: 'pro',
       supabase: client,
+      phone: '5491100000000',
     });
     expect(result.error).toBeUndefined();
     expect(result.data).toMatchObject({ status: 'not_implemented' });
@@ -78,7 +82,52 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
       tenantId: TENANT_A,
       tier: 'base',
       supabase: client,
+      phone: '5491100000000',
     });
+    expect(result.error).toBeDefined();
+  });
+
+  it('reprogramar_cita filtra explícitamente por tenant_id al actualizar', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: 'cita-1' }, error: null });
+    await executeToolCall(
+      'reprogramar_cita',
+      { cita_id: 'cita-1', nueva_fecha: '2026-10-05', nueva_hora: '15:00' },
+      { tenantId: TENANT_A, tier: 'pro', supabase: client, phone: '5491100000000' }
+    );
+    const eqCalls = calls.filter((c) => c.method === 'eq');
+    expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
+  });
+
+  it('reprogramar_cita es rechazada si el tier es base (feature de Pro)', async () => {
+    const { client } = createMockSupabase({ data: null, error: null });
+    const result = await executeToolCall(
+      'reprogramar_cita',
+      { cita_id: 'cita-1', nueva_fecha: '2026-10-05', nueva_hora: '15:00' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+    expect(result.error).toBeDefined();
+    expect(result.error).toMatch(/tier|pro|no disponible/i);
+  });
+
+  it('anotar_lista_espera inserta con tenant_id seteado explícitamente', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: '1' }, error: null });
+    await executeToolCall(
+      'anotar_lista_espera',
+      { servicio_id: 'serv-1', fecha: '2026-10-05', hora_desde: '14:00', hora_hasta: '18:00' },
+      { tenantId: TENANT_A, tier: 'pro', supabase: client, phone: '5491100000000' }
+    );
+    const insertCall = calls.find((c) => c.method === 'insert');
+    const payload = insertCall!.args[0] as { tenant_id: string };
+    expect(payload.tenant_id).toBe(TENANT_A);
+  });
+
+  it('anotar_lista_espera es rechazada si el tier es base (feature de Pro)', async () => {
+    const { client } = createMockSupabase({ data: null, error: null });
+    const result = await executeToolCall(
+      'anotar_lista_espera',
+      { servicio_id: 'serv-1', fecha: '2026-10-05', hora_desde: '14:00', hora_hasta: '18:00' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
     expect(result.error).toBeDefined();
   });
 });
