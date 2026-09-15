@@ -37,7 +37,22 @@ SaaS multi-tenant con Agente IA que responde WhatsApp 24/7, registra citas y ges
 **65/65 tests pasando** (62 en `apps/web` + 3 en `packages/design-tokens`).
 
 ⏳ Pendiente: probar el webhook con un número de WhatsApp real (Fase 5) y credenciales reales de OpenRouter/Meta en `.env.local`
-⏳ Próximo: FASE 4 — Frontend CRM (páginas de Conversaciones, Catálogo, Configuración, Analytics)
+
+### Sub-proyecto A — Fundación: Rubro + Sistema de Tiers ✅
+Ver spec completo en `docs/superpowers/specs/2026-09-14-fundacion-rubro-tiers-design.md`.
+
+- `negocio.tipo_crm` ('ventas'|'turnos') + `negocio.rubro` — deciden qué CRM ve cada negocio
+- `negocio.tier` extendido a `base`/`pro`/`premium` (swap: Pro = fidelización/combos/cuenta corriente, Premium = cobros MercadoPago/transferencias/billeteras)
+- `lib/plans/features.ts` — `hasFeature()` con feature-gating híbrido: reglas fijas por tier en código + tabla `negocio_feature_overrides` para excepciones puntuales por negocio
+- Columnas de facturación: `plan_ciclo_facturacion` (mensual/anual), `plan_fecha_alta`, `plan_fecha_vencimiento`, `plan_estado_pago`
+- Tabla `clientes` + memoria cross-conversación: el agente ahora carga los últimos 10 mensajes de **todas** las conversaciones de un cliente con el negocio, no solo la activa
+- Signup actualizado: pide `tipo_crm` y `rubro` al crear la cuenta
+- Decisión documentada: LLM compartido vía OpenRouter para todos los negocios (no uno dedicado por negocio) — la personalización viene del contexto inyectado, no del modelo. BYOK (traer tu propia API key) queda en el backlog para negocios grandes.
+- Backlog de ideas para la beta: recordatorios de recompra, lista de espera automática en turnos, encuestas de satisfacción, multi-idioma, referidos, reportes semanales al dueño
+
+**76/76 tests pasando** (73 en `apps/web` + 3 en `packages/design-tokens`).
+
+⏳ Próximo: sub-proyecto **C** (CRM Turnos/Citas) — requiere su propio brainstorming antes del plan, según el orden acordado A → C → B → D
 
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
