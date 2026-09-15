@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service-client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { AdminNegocioControls } from '@/components/admin/admin-negocio-controls';
 
 export default async function AdminNegocioDetallePage({
   params,
@@ -19,6 +20,10 @@ export default async function AdminNegocioDetallePage({
     .select('*')
     .eq('tenant_id', id)
     .order('fecha', { ascending: false });
+
+  const overridesMap = Object.fromEntries(
+    (overrides ?? []).map((o) => [o.feature_key, o.habilitado])
+  );
 
   return (
     <main className="min-h-screen bg-background p-8">
@@ -40,17 +45,16 @@ export default async function AdminNegocioDetallePage({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Features activadas puntualmente</CardTitle>
+          <CardTitle>Controles</CardTitle>
         </CardHeader>
         <CardContent>
-          {(overrides ?? []).length === 0 && (
-            <p className="text-sm text-text-muted">Sin overrides activos.</p>
-          )}
-          {(overrides ?? []).map((o) => (
-            <p key={o.id} className="text-sm">
-              {o.feature_key}: {o.habilitado ? 'activado' : 'desactivado'}
-            </p>
-          ))}
+          <AdminNegocioControls
+            tenantId={id}
+            estadoCuentaActual={negocio?.estado_cuenta ?? 'activo'}
+            overridesActuales={overridesMap}
+            planFechaAltaActual={negocio?.plan_fecha_alta ?? null}
+            planCicloActual={negocio?.plan_ciclo_facturacion ?? 'mensual'}
+          />
         </CardContent>
       </Card>
 
