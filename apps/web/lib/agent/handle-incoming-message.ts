@@ -22,7 +22,8 @@ interface Deps {
   findNegocioByPhoneNumberId: (phoneNumberId: string) => Promise<NegocioLookup | null>;
   findOrCreateConversation: (tenantId: string, phoneFrom: string) => Promise<{ id: string }>;
   loadRecentMessages: (
-    conversationId: string
+    tenantId: string,
+    phoneFrom: string
   ) => Promise<Array<{ role: 'user' | 'assistant'; content: string }>>;
   saveMessage: (msg: {
     tenantId: string;
@@ -59,7 +60,7 @@ export async function handleIncomingMessage(
   }
 
   const conversation = await deps.findOrCreateConversation(negocio.tenant_id, incoming.from);
-  const history = await deps.loadRecentMessages(conversation.id);
+  const history = await deps.loadRecentMessages(negocio.tenant_id, incoming.from);
 
   await deps.saveMessage({
     tenantId: negocio.tenant_id,

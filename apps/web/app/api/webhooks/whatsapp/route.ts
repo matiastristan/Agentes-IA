@@ -70,11 +70,20 @@ export async function POST(request: NextRequest) {
 
         return created!;
       },
-      loadRecentMessages: async (conversationId) => {
+      loadRecentMessages: async (tenantId, phoneFrom) => {
+        const { data: convs } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('phone_from', phoneFrom);
+
+        const conversationIds = (convs ?? []).map((c) => c.id);
+        if (conversationIds.length === 0) return [];
+
         const { data } = await supabase
           .from('messages')
           .select('role, content')
-          .eq('conversation_id', conversationId)
+          .in('conversation_id', conversationIds)
           .order('created_at', { ascending: false })
           .limit(10);
 

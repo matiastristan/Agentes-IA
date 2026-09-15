@@ -104,4 +104,13 @@ describe('handleIncomingMessage', () => {
     expect(deps.callOpenRouter).toHaveBeenCalledTimes(2);
     expect(result.responseText).toBe('Tenemos corte clásico a $3500');
   });
+
+  it('carga el historial por tenantId + phoneFrom, no solo por conversationId (memoria cross-conversación)', async () => {
+    const deps = makeDeps();
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola de nuevo' },
+      deps
+    );
+    expect(deps.loadRecentMessages).toHaveBeenCalledWith('tenant-a', '5491100000000');
+  });
 });
