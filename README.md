@@ -154,6 +154,17 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-panel-admin-d1-design.md
 
 ⏳ Backlog abierto: campañas masivas + resumen IA de historial largo, sincronización con Google Calendar, sistema completo de cobro/logística para B, BYOK.
 
+## Pruebas end-to-end reales — en curso
+
+Empezamos a probar la app real (signup, login, CRM) en la máquina del usuario. Hallazgos:
+
+- **Signup por UI bloqueado por rate limit de email** de Supabase (el servicio de correo gratuito tiene un límite muy bajo). Para seguir probando, se crean usuarios de prueba vía Admin API (`supabase.auth.admin.createUser`) en vez de INSERT directo a `auth.users` — el INSERT directo resultó en `Database error querying schema` al hacer login real, porque salteaba la creación de la fila correspondiente en `auth.identities`. La Admin API es el método correcto y confiable.
+- **Bug real encontrado y corregido**: `TurnoCard` esperaba estados tipo `disponible`/`ocupado`, pero `citas.estado` en la base usa `pendiente`/`confirmada`/`cancelada`/`completada`/`no_show`/`reprogramada`. Se agregó `mapCitaEstadoToTurnoCardEstado()` (testeado) para traducir correctamente.
+- **Pendiente real**: no existe todavía un sidebar de navegación entre páginas — cada ruta es standalone, se navega por URL directa. Anotado para la próxima iteración de UI.
+- **Incidente de seguridad durante las pruebas**: se expuso por error un `service_role` key (legacy) y luego una `secret` key nueva en el chat. Ambas fueron reemplazadas. La legacy no pudo revocarse del todo por la complejidad del flujo de JWT Signing Keys de Supabase — queda pendiente revocarla formalmente más adelante (bajo riesgo mientras tanto: sin producción real, sin datos sensibles).
+
+**144/144 tests pasando** (141 en `apps/web` + 3 en `packages/design-tokens`).
+
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
 
