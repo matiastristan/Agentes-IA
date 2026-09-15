@@ -30,6 +30,11 @@ const RUBROS_VENTAS = [
   'viajes_turismo',
   'electronica',
   'computacion',
+  'logistica',
+  'paqueteria',
+  'catering',
+  'marketing_digital',
+  'autos_usados',
 ];
 
 export default function SignupPage() {

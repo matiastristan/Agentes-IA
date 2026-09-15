@@ -31,7 +31,8 @@ personalizar textos del agente y para agrupar métricas en el panel admin (D).
 Rubros de referencia (no son un enum estricto en DB, son sugerencias en el signup):
 
 - **Ventas**: mayorista, pet_shop, suplementos_gimnasio, alimentos_congelados,
-  panificados, pastas, viajes_turismo, electronica, computacion
+  panificados, pastas, viajes_turismo, electronica, computacion, logistica,
+  paqueteria, catering, marketing_digital, autos_usados
 - **Turnos**: cancha_padel, cancha_futbol, cancha_tenis, gimnasio, barberia,
   unas_pestanas, estetica, salud_belleza, odontologia
 
