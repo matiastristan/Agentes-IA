@@ -1,10 +1,27 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { verifySessionToken } from '@/lib/admin/session-token';
 
 const PROTECTED_PREFIXES = ['/dashboard', '/turnos'];
 const AUTH_PAGES = ['/login', '/signup'];
 
 export async function proxy(request: NextRequest) {
+  // Rama de admin: completamente separada del auth de tenants (Supabase Auth).
+  // Nunca usa supabase.auth.getUser() — valida contra su propio token firmado.
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (request.nextUrl.pathname === '/admin/login') {
+      return NextResponse.next({ request });
+    }
+    const token = request.cookies.get('admin_session')?.value;
+    const session = token ? verifySessionToken(token) : null;
+    if (!session) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
