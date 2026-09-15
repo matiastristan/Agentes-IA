@@ -106,6 +106,22 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-crm-ventas-productos-des
 
 ⏳ Próximo: UI de B (carga de Excel, catálogo editable tipo spreadsheet, gestión de combos) o sub-proyecto D (Panel Admin)
 
+### Sub-proyecto D1 — Panel Admin ✅ (base funcional)
+Ver spec completo en `docs/superpowers/specs/2026-09-15-panel-admin-d1-design.md`.
+
+- **Principio ético acordado con el usuario**: el panel NUNCA muestra las ventas/datos de negocio de los tenants — solo lo que compete a la plataforma (cuántos clientes hay, cómo crecen, cuánto se les factura por el servicio)
+- Auth de admin **100% separada** de Supabase Auth de tenants: tabla `admins` (nunca alimentada por signup público), `hashPassword`/`verifyPassword` con scrypt y `createSessionToken`/`verifySessionToken` con HMAC — todo con `node:crypto`, sin dependencias nuevas
+- `negocio.estado_cuenta` (activo/suspendido_pago/baja_definitiva) con **enforcement real en el webhook**: un negocio suspendido no llega a gastar tokens de OpenRouter, no solo "se ve distinto" en la UI
+- `facturacion_negocio` — historial de lo que Matías le cobra a cada negocio (plan + adicionales), con RLS deny-by-default (solo accesible vía `service_role`)
+- 3 páginas de lectura: `/admin` (feed de vencimientos + resumen), `/admin/negocios` (listado), `/admin/negocios/[id]` (detalle con overrides activos y facturación)
+- Instrucciones paso a paso para que el usuario cree su propio usuario admin de forma privada (nunca se generó ni vio la contraseña en esta sesión)
+
+**120/120 tests pasando** (117 en `apps/web` + 3 en `packages/design-tokens`).
+
+**Nota de alcance**: las mutaciones desde la UI (activar/desactivar overrides, cambiar estado_cuenta, date-picker de alta) quedan para una iteración siguiente sobre esta base de lectura — mismo criterio usado entre C1 y C2.
+
+⏳ Próximo: D2 (agente propio de Matías, WhatsApp + chat en el panel) o completar las mutaciones de D1
+
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
 
