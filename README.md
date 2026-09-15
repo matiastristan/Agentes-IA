@@ -88,6 +88,24 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-crm-turnos-frontend-c2-d
 
 ⏳ Próximo: sub-proyecto **B** (CRM Ventas) o iterar la capa visual de C2 con uso real
 
+### Sub-proyecto B — CRM Ventas/Productos: Backend ✅
+Ver spec completo en `docs/superpowers/specs/2026-09-15-crm-ventas-productos-design.md`.
+
+- **Decisión de arquitectura clave**: JSON flexible (`productos.atributos`) en vez de columnas dinámicas por Excel subido — mismo resultado visual para el cliente (su propia tabla con sus propias columnas), sin el riesgo de seguridad ni el problema de escala de crear columnas reales por negocio
+- `productos` extendido: `precio`, `stock`, `atributos jsonb`, `umbral_alerta_stock` (configurable por producto, según rotación/demanda)
+- `ventas` + `venta_items` (múltiples productos y/o combos por venta) + `combos` (armados libremente por el dueño)
+- `checkStockAlert()` — función pura testeada
+- Tool `registrar_venta`: crea la venta + items, descuenta stock automáticamente, mismo aislamiento multi-tenant explícito que el resto de las tools
+- Se ampliaron los rubros de "Ventas" en el signup: logística, paquetería, catering, marketing digital, autos usados — el diseño de atributos flexibles ya soportaba esto sin cambios de código
+- Se encontraron y corrigieron **8 foreign keys sin índice** (algunas nuevas de B, otras que habían quedado sin cubrir desde C1) — resuelto el warning de performance `unindexed_foreign_keys` por completo
+- Se corrigió el tipo `ToolDefinition` para soportar parámetros de tipo array con `items` anidado (necesario para `registrar_venta`)
+
+**111/111 tests pasando** (108 en `apps/web` + 3 en `packages/design-tokens`).
+
+**Nota de implementación documentada**: el descuento de stock usa un `update` simple, no atómico — suficiente para el volumen esperado del MVP, anotado en el código para migrar a una función RPC si el volumen de ventas simultáneas lo justifica.
+
+⏳ Próximo: UI de B (carga de Excel, catálogo editable tipo spreadsheet, gestión de combos) o sub-proyecto D (Panel Admin)
+
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
 
