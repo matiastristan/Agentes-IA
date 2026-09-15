@@ -53,6 +53,47 @@ export type Database = {
           },
         ]
       }
+      clientes: {
+        Row: {
+          created_at: string
+          fecha_nacimiento: string | null
+          id: string
+          nombre: string | null
+          notas: string | null
+          phone: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fecha_nacimiento?: string | null
+          id?: string
+          nombre?: string | null
+          notas?: string | null
+          phone: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fecha_nacimiento?: string | null
+          id?: string
+          nombre?: string | null
+          notas?: string | null
+          phone?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
@@ -164,11 +205,17 @@ export type Database = {
           meta_connection_status: string
           nombre: string
           phone_number_id: string
+          plan_ciclo_facturacion: string
+          plan_estado_pago: string
+          plan_fecha_alta: string | null
+          plan_fecha_vencimiento: string | null
+          rubro: string | null
           system_prompt: string | null
           system_prompt_history: Json
           system_prompt_version: number
           tenant_id: string
           tier: string
+          tipo_crm: string
           tono_voz: string | null
           updated_at: string
         }
@@ -184,11 +231,17 @@ export type Database = {
           meta_connection_status?: string
           nombre: string
           phone_number_id: string
+          plan_ciclo_facturacion?: string
+          plan_estado_pago?: string
+          plan_fecha_alta?: string | null
+          plan_fecha_vencimiento?: string | null
+          rubro?: string | null
           system_prompt?: string | null
           system_prompt_history?: Json
           system_prompt_version?: number
           tenant_id?: string
           tier?: string
+          tipo_crm?: string
           tono_voz?: string | null
           updated_at?: string
         }
@@ -204,15 +257,53 @@ export type Database = {
           meta_connection_status?: string
           nombre?: string
           phone_number_id?: string
+          plan_ciclo_facturacion?: string
+          plan_estado_pago?: string
+          plan_fecha_alta?: string | null
+          plan_fecha_vencimiento?: string | null
+          rubro?: string | null
           system_prompt?: string | null
           system_prompt_history?: Json
           system_prompt_version?: number
           tenant_id?: string
           tier?: string
+          tipo_crm?: string
           tono_voz?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      negocio_feature_overrides: {
+        Row: {
+          created_at: string
+          feature_key: string
+          habilitado: boolean
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          habilitado: boolean
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          habilitado?: boolean
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negocio_feature_overrides_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "negocio"
+            referencedColumns: ["tenant_id"]
+          },
+        ]
       }
       productos: {
         Row: {
@@ -349,6 +440,40 @@ export type TablesUpdate<
       }
       ? U
       : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
