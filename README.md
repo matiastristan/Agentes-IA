@@ -54,6 +54,23 @@ Ver spec completo en `docs/superpowers/specs/2026-09-14-fundacion-rubro-tiers-de
 
 ⏳ Próximo: sub-proyecto **C** (CRM Turnos/Citas) — requiere su propio brainstorming antes del plan, según el orden acordado A → C → B → D
 
+### Sub-proyecto C1 — CRM Turnos/Citas: Backend ✅
+Ver spec completo en `docs/superpowers/specs/2026-09-15-crm-turnos-citas-design.md`.
+
+- `servicios` (duración variable, promociones, horario propio opcional), `recursos` (canchas/sillones/profesionales reservables en paralelo, con subtipo para fútbol 5/7/9/11)
+- `citas` extendida: `servicio_id`, `recurso_id`, seña (`sena_requerida`/`sena_pagada`/`sena_metodo`), estados `no_show` y `reprogramada`
+- `lista_espera` con opt-in — reemplaza la idea original de "colgar un estado" (inviable con la API real de WhatsApp, documentado el motivo técnico en el spec)
+- `recordatorios_config` — sistema de alertas 100% configurable por negocio, no hardcodeado
+- `reglas_reprogramacion` — reprogramación self-service del cliente vía el agente, validada contra estas reglas
+- `negocio.plantillas_meta_habilitadas` — guardrail: si el dueño configura un recordatorio fuera de la ventana de 24hs sin tener plantillas de Meta aprobadas, el sistema lo va a alertar (lógica ya testeada en `reminder-guardrail.ts`; la UI que lo muestra es parte de C2)
+- 4 features nuevas de tier Pro: `recordatorios_configurables`, `lista_espera_automatica`, `reprogramacion_self_service`, `gestion_senas`
+- 2 tools nuevas del agente: `reprogramar_cita`, `anotar_lista_espera` — mismo aislamiento multi-tenant explícito que las 5 de Fase 3
+- `findNextWaitlistCandidate()` — selecciona al próximo candidato de la lista de espera cuando se libera un turno (por orden de llegada, respetando servicio/recurso/franja pedidos)
+
+**93/93 tests pasando** (90 en `apps/web` + 3 en `packages/design-tokens`).
+
+⏳ Próximo: **C2** (Frontend — calendario, tarjetas de turnos, páginas de gestión de servicios/recursos/recordatorios), después **B** (CRM Ventas) y **D** (Panel Admin)
+
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
 
