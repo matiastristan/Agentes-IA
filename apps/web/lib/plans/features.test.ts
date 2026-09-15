@@ -35,4 +35,16 @@ describe('hasFeature', () => {
     const overrides = [{ feature_key: 'otra_feature', habilitado: true }];
     expect(hasFeature('base', overrides, 'combos_promociones')).toBe(false);
   });
+
+  it('tier pro tiene las 4 features nuevas de turnos', () => {
+    expect(hasFeature('pro', [], 'recordatorios_configurables')).toBe(true);
+    expect(hasFeature('pro', [], 'lista_espera_automatica')).toBe(true);
+    expect(hasFeature('pro', [], 'reprogramacion_self_service')).toBe(true);
+    expect(hasFeature('pro', [], 'gestion_senas')).toBe(true);
+  });
+
+  it('tier base NO tiene las features de turnos avanzadas', () => {
+    expect(hasFeature('base', [], 'recordatorios_configurables')).toBe(false);
+    expect(hasFeature('base', [], 'lista_espera_automatica')).toBe(false);
+  });
 });

@@ -14,7 +14,11 @@ export type FeatureKey =
   | 'cobro_mercadopago'
   | 'transferencias'
   | 'comprobantes'
-  | 'billeteras_virtuales';
+  | 'billeteras_virtuales'
+  | 'recordatorios_configurables'
+  | 'lista_espera_automatica'
+  | 'reprogramacion_self_service'
+  | 'gestion_senas';
 
 const BASE_FEATURES: FeatureKey[] = [
   'agente_responde',
@@ -31,6 +35,10 @@ const PRO_FEATURES: FeatureKey[] = [
   'saludo_cumpleanos',
   'turnos_fijos_mensualizados',
   'cuenta_corriente',
+  'recordatorios_configurables',
+  'lista_espera_automatica',
+  'reprogramacion_self_service',
+  'gestion_senas',
 ];
 
 const PREMIUM_FEATURES: FeatureKey[] = [
