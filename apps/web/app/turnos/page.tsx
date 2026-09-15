@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { pickCalendarView } from '@/lib/turnos/pick-calendar-view';
+import { mapCitaEstadoToTurnoCardEstado } from '@/lib/turnos/map-cita-estado';
 import { TurnoCard } from '@/components/turnos/turno-card';
 
 export default async function TurnosPage() {
@@ -32,7 +33,7 @@ export default async function TurnosPage() {
         {(citas ?? []).map((c) => (
           <TurnoCard
             key={c.id}
-            estado={c.estado as 'disponible' | 'ocupado' | 'no_show' | 'reprogramada'}
+            estado={mapCitaEstadoToTurnoCardEstado(c.estado)}
             hora={c.hora}
             clienteNombre={c.customer_name ?? undefined}
           />
