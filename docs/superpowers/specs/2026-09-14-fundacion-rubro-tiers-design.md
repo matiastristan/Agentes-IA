@@ -131,6 +131,20 @@ y `rubro` (selector dependiente del tipo_crm elegido, con las opciones de la sec
 El trigger `handle_new_user()` en Supabase se actualiza para leer estos dos campos
 de `raw_user_meta_data` además de `nombre_negocio`.
 
+### 7. Decisión: modelo LLM compartido (no uno por negocio)
+
+Se evaluó contratar un LLM dedicado por negocio vs. un modelo compartido vía
+OpenRouter (lo ya construido en Fase 3). Se decide mantener **compartido**:
+la personalización real viene del contexto inyectado (system prompt dinámico +
+catálogo + historial vía `clientes`), no de qué modelo corre por debajo. Un
+modelo por negocio multiplicaría costo operativo sin ganancia de aislamiento
+ni de personalización, y sería inviable de escalar para un solopreneur. La
+diferenciación de costo/calidad ya existe y es más inteligente: por **tier**
+(Haiku en Base, Sonnet en Pro/Premium), no por identidad del negocio.
+
+Queda en el backlog **BYOK** (ver más abajo) como camino de escala para
+negocios grandes que quieran pagar su propio consumo de LLM directamente.
+
 ## Explícitamente fuera de alcance de A
 
 - Las páginas de CRM en sí (Conversaciones, Catálogo, Turnos) → **C** y **B**
@@ -147,6 +161,13 @@ cancelados, encuestas de satisfacción automáticas, detección de idioma y
 respuesta multi-idioma, programa de referidos, reportes semanales automáticos
 al dueño del negocio. Se evalúan durante la fase beta según lo que pidan los
 primeros negocios reales.
+
+**BYOK (Bring Your Own Key)**: para negocios grandes/enterprise, permitir que
+traigan su propia API key de OpenRouter/Anthropic y paguen su propio consumo
+de LLM directamente, en vez de que el costo salga del margen del plan que le
+cobrás vos. Requeriría un campo `negocio.openrouter_api_key_propia` (encriptado,
+igual que `access_token` de Meta) y que `callOpenRouter()` use esa key si existe,
+si no la key compartida de la plataforma. Feature de escala, no para el MVP.
 
 ## Testing
 
