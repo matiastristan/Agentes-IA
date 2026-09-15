@@ -22,6 +22,14 @@ export default async function AdminDashboardPage() {
   return (
     <main className="min-h-screen bg-background p-8">
       <h1 className="text-2xl font-semibold text-text-primary mb-6">Panel Admin</h1>
+      <div className="flex gap-3 mb-6">
+        <a href="/admin/negocios" className="text-sm text-primary font-medium">
+          Ver negocios
+        </a>
+        <a href="/admin/chat" className="text-sm text-primary font-medium">
+          Hablar con tu agente
+        </a>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <KPICard label="Negocios activos" value={totalActivos ?? 0} />
         <KPICard label="Por vencer (7 días)" value={porVencer?.length ?? 0} />

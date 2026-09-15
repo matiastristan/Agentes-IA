@@ -122,6 +122,38 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-panel-admin-d1-design.md
 
 ⏳ Próximo: D2 (agente propio de Matías, WhatsApp + chat en el panel) o completar las mutaciones de D1
 
+### Cierre de pendientes: mutaciones D1 + UI de B + D2 ✅
+
+**Mutaciones de D1:**
+- `computePlanFechaVencimiento` (mensual=30d, anual=365d), `requireAdminSession` (las rutas `/api/admin/*` necesitan su propio chequeo — `proxy.ts` solo protege páginas `/admin/*`, no las API routes)
+- 3 rutas de mutación (`estado-cuenta`, `overrides`, `plan-alta`) + controles integrados en `/admin/negocios/[id]`
+
+**UI de B (CRM Ventas):**
+- `mapExcelRowToProducto` (nombre/precio/stock reconocidos, resto a `atributos` JSON) y `extractDynamicColumns` (columnas propias por negocio)
+- Carga de Excel vía `xlsx`, página `/ventas/catalogo` (tabla tipo spreadsheet con columnas dinámicas + alertas de stock visibles), página `/ventas/combos`
+
+**D2 — Agente propio de Matías:**
+- Tools de solo lectura (`consultar_metricas_plataforma`, `consultar_facturacion_propia`) — **testeado explícitamente que nunca expone ventas de los tenants**, respetando el principio ético acordado
+- Orquestador con tool-calling de dos vueltas (mismo patrón que el agente de los tenants, Fase 3)
+- Canal **chat en el panel**: `/admin/chat` + `/api/admin/chat`, funcional
+- Canal **WhatsApp**: requiere que Matías configure su propio número de Meta Business (independiente del de los tenants) — mismo tipo de paso externo que la aprobación de plantillas de Meta en C1. La lógica del agente (`handle-admin-chat-message.ts`) es agnóstica al canal, así que conectar WhatsApp más adelante es trabajo de wiring, no de rediseño.
+
+**142/142 tests pasando** (139 en `apps/web` + 3 en `packages/design-tokens`).
+
+## Estado completo del proyecto
+
+| Sub-proyecto | Estado |
+|---|---|
+| A — Rubro + Tiers + Memoria | ✅ |
+| C1 — CRM Turnos (backend) | ✅ |
+| C2 — CRM Turnos (frontend base) | ✅ |
+| B — CRM Ventas (backend + UI) | ✅ |
+| D1 — Panel Admin (lectura + mutaciones) | ✅ |
+| D2 — Agente propio (canal chat) | ✅ |
+| D2 — Canal WhatsApp | ⏳ Requiere número de Meta propio |
+
+⏳ Backlog abierto: campañas masivas + resumen IA de historial largo, sincronización con Google Calendar, sistema completo de cobro/logística para B, BYOK.
+
 Ver el plan completo en `docs/superpowers/plans/2026-09-14-fase1-architecture-design-system.md`
 y el design system completo en `docs/design-system/design-tokens.md`.
 
