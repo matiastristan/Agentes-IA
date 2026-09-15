@@ -122,6 +122,55 @@ async function anotarListaEspera(
   return { data };
 }
 
+async function registrarVenta(
+  args: {
+    customer_name: string;
+    items: Array<{ producto_id?: string; combo_id?: string; cantidad: number }>;
+  },
+  ctx: ToolContext
+): Promise<ToolResult> {
+  const { data: venta, error: ventaError } = await ctx.supabase
+    .from('ventas')
+    .insert({ tenant_id: ctx.tenantId, customer_name: args.customer_name })
+    .select()
+    .single();
+
+  if (ventaError) return { error: 'No se pudo registrar la venta' };
+
+  for (const item of args.items) {
+    await ctx.supabase.from('venta_items').insert({
+      venta_id: venta.id,
+      producto_id: item.producto_id ?? null,
+      combo_id: item.combo_id ?? null,
+      cantidad: item.cantidad,
+      precio_unitario: 0,
+      es_combo: !!item.combo_id,
+    });
+
+    if (item.producto_id) {
+      // Nota: update simple, no atómico. Suficiente para el volumen esperado
+      // del MVP — si el volumen de ventas simultáneas del mismo producto
+      // crece, migrar a una función RPC atómica para evitar race conditions.
+      const { data: producto } = await ctx.supabase
+        .from('productos')
+        .select('stock')
+        .eq('tenant_id', ctx.tenantId)
+        .eq('id', item.producto_id)
+        .single();
+
+      if (producto) {
+        await ctx.supabase
+          .from('productos')
+          .update({ stock: producto.stock - item.cantidad })
+          .eq('tenant_id', ctx.tenantId)
+          .eq('id', item.producto_id);
+      }
+    }
+  }
+
+  return { data: venta };
+}
+
 export async function executeToolCall(
   toolName: string,
   args: Record<string, unknown>,
@@ -143,6 +192,14 @@ export async function executeToolCall(
     case 'anotar_lista_espera':
       return anotarListaEspera(
         args as { servicio_id: string; fecha: string; hora_desde: string; hora_hasta: string },
+        ctx
+      );
+    case 'registrar_venta':
+      return registrarVenta(
+        args as {
+          customer_name: string;
+          items: Array<{ producto_id?: string; combo_id?: string; cantidad: number }>;
+        },
         ctx
       );
     default:

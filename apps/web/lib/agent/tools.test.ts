@@ -45,4 +45,10 @@ describe('getToolsForTier', () => {
     const names = tools.map((t) => t.function.name);
     expect(names).toEqual(expect.arrayContaining(['reprogramar_cita', 'anotar_lista_espera']));
   });
+
+  it('tier base incluye registrar_venta', () => {
+    const tools = getToolsForTier('base');
+    const names = tools.map((t) => t.function.name);
+    expect(names).toContain('registrar_venta');
+  });
 });

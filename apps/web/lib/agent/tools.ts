@@ -5,7 +5,8 @@ export interface ToolDefinition {
     description: string;
     parameters: {
       type: 'object';
-      properties: Record<string, { type: string; description: string }>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      properties: Record<string, any>;
       required: string[];
     };
   };
@@ -121,12 +122,41 @@ const anotar_lista_espera: ToolDefinition = {
   },
 };
 
+const registrar_venta: ToolDefinition = {
+  type: 'function',
+  function: {
+    name: 'registrar_venta',
+    description:
+      'Registra una venta con uno o más productos o combos, y descuenta el stock correspondiente.',
+    parameters: {
+      type: 'object',
+      properties: {
+        customer_name: { type: 'string', description: 'Nombre del cliente' },
+        items: {
+          type: 'array',
+          description: 'Lista de productos o combos comprados',
+          items: {
+            type: 'object',
+            properties: {
+              producto_id: { type: 'string', description: 'ID del producto (si no es un combo)' },
+              combo_id: { type: 'string', description: 'ID del combo (si aplica)' },
+              cantidad: { type: 'number', description: 'Cantidad comprada' },
+            },
+          },
+        },
+      },
+      required: ['customer_name', 'items'],
+    },
+  },
+};
+
 const BASE_TOOLS = [
   consultar_disponibilidad,
   registrar_cita,
   obtener_catalogo,
   reprogramar_cita,
   anotar_lista_espera,
+  registrar_venta,
 ];
 const PRO_TOOLS = [...BASE_TOOLS, procesar_pago, aplicar_descuento];
 

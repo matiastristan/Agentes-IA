@@ -130,4 +130,16 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     );
     expect(result.error).toBeDefined();
   });
+
+  it('registrar_venta filtra explícitamente por tenant_id al insertar la venta', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: 'venta-1' }, error: null });
+    await executeToolCall(
+      'registrar_venta',
+      { customer_name: 'Juan', items: [{ producto_id: 'prod-1', cantidad: 2 }] },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+    const insertCalls = calls.filter((c) => c.method === 'insert');
+    const ventaInsert = insertCalls[0].args[0] as { tenant_id: string };
+    expect(ventaInsert.tenant_id).toBe(TENANT_A);
+  });
 });
