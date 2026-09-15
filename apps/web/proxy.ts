@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifySessionToken } from '@/lib/admin/session-token';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/turnos'];
+const PROTECTED_PREFIXES = ['/dashboard', '/turnos', '/ventas'];
 const AUTH_PAGES = ['/login', '/signup'];
 
 export async function proxy(request: NextRequest) {
