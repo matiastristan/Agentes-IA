@@ -1,5 +1,7 @@
 import { buildSystemPrompt } from './system-prompt';
 import { getToolsForTier } from './tools';
+import { categorizeTemperatura } from './categorize-temperature';
+import { shouldTriggerLeadAlert } from '../notifications/should-trigger-lead-alert';
 
 interface NegocioLookup {
   tenant_id: string;
@@ -11,6 +13,7 @@ interface NegocioLookup {
   phone_number_id: string;
   access_token: string | null;
   estado_cuenta?: string;
+  email_alertas?: string | null;
 }
 
 interface IncomingMessage {
@@ -50,6 +53,14 @@ interface Deps {
     to: string;
     text: string;
   }) => Promise<{ success: boolean; error?: string; wamid?: string }>;
+  isAlertaLeadCalienteHabilitada: (tenantId: string) => Promise<boolean>;
+  updateConversationTemperatura: (conversationId: string, temperatura: string) => Promise<void>;
+  sendLeadAlertEmail: (params: {
+    to: string;
+    nombreNegocio: string;
+    customerName: string;
+    customerPhone: string;
+  }) => Promise<{ success: boolean; error?: string }>;
 }
 
 // Modelos gratuitos de OpenRouter, con fallback en orden: si el primero se
@@ -136,6 +147,35 @@ export async function handleIncomingMessage(
     role: 'user',
     content: incoming.text,
   });
+
+  // Calificación automática de lead — upsell activable por negocio desde el
+  // panel admin. Corre independiente de si el bot está desactivado en esta
+  // conversación puntual, porque el dueño quiere saber de un lead caliente
+  // incluso si un vendedor humano ya tomó la charla.
+  const alertasHabilitadas = await deps.isAlertaLeadCalienteHabilitada(negocio.tenant_id);
+  if (alertasHabilitadas) {
+    const cantidadMensajesUsuario =
+      history.filter((m) => m.role === 'user').length + 1; // +1 por el mensaje actual
+
+    const temperatura = await categorizeTemperatura(
+      [...history, { role: 'user' as const, content: incoming.text }],
+      deps.callOpenRouter
+    );
+
+    await deps.updateConversationTemperatura(conversation.id, temperatura);
+
+    if (
+      shouldTriggerLeadAlert({ temperatura, cantidadMensajesUsuario, featureHabilitada: true }) &&
+      negocio.email_alertas
+    ) {
+      await deps.sendLeadAlertEmail({
+        to: negocio.email_alertas,
+        nombreNegocio: negocio.nombre,
+        customerName: incoming.from,
+        customerPhone: incoming.from,
+      });
+    }
+  }
 
   if (conversation.bot_desactivado) {
     return { handled: false };

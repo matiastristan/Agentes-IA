@@ -10,6 +10,7 @@ const NEGOCIO_A = {
   tier: 'base' as const,
   phone_number_id: 'phone-a',
   access_token: 'token-a',
+  email_alertas: 'dueno@barberiaa.com',
 };
 
 function makeDeps(overrides: Partial<Record<string, unknown>> = {}) {
@@ -24,6 +25,9 @@ function makeDeps(overrides: Partial<Record<string, unknown>> = {}) {
     }),
     executeToolCall: vi.fn(),
     sendWhatsAppMessage: vi.fn().mockResolvedValue({ success: true }),
+    isAlertaLeadCalienteHabilitada: vi.fn().mockResolvedValue(false),
+    updateConversationTemperatura: vi.fn().mockResolvedValue(undefined),
+    sendLeadAlertEmail: vi.fn().mockResolvedValue({ success: true }),
     ...overrides,
   };
 }
@@ -206,5 +210,64 @@ describe('handleIncomingMessage', () => {
     expect(deps.callOpenRouter).not.toHaveBeenCalled();
     expect(deps.sendWhatsAppMessage).not.toHaveBeenCalled();
     expect(result.handled).toBe(false);
+  });
+
+  it('si la feature de alertas no está habilitada, no se categoriza ni se llama a sendLeadAlertEmail', async () => {
+    const deps = makeDeps({
+      loadRecentMessages: vi.fn().mockResolvedValue([
+        { role: 'user', content: 'Hola' },
+        { role: 'assistant', content: 'Hola, ¿en qué ayudo?' },
+        { role: 'user', content: 'Quiero reservar' },
+      ]),
+    });
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Ya mismo, hoy' },
+      deps
+    );
+    expect(deps.callOpenRouter).toHaveBeenCalledTimes(1); // solo la respuesta principal, no categorización
+    expect(deps.sendLeadAlertEmail).not.toHaveBeenCalled();
+  });
+
+  it('con la feature habilitada, 3+ mensajes del usuario y el modelo categoriza caliente, dispara sendLeadAlertEmail', async () => {
+    const deps = makeDeps({
+      isAlertaLeadCalienteHabilitada: vi.fn().mockResolvedValue(true),
+      loadRecentMessages: vi.fn().mockResolvedValue([
+        { role: 'user', content: 'Hola' },
+        { role: 'assistant', content: 'Hola, ¿en qué ayudo?' },
+        { role: 'user', content: 'Quiero reservar' },
+      ]),
+      callOpenRouter: vi
+        .fn()
+        .mockResolvedValueOnce({ message: { content: 'caliente' } })
+        .mockResolvedValueOnce({ message: { role: 'assistant', content: 'Dale, te reservo!' } }),
+    });
+
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Ya mismo, hoy' },
+      deps
+    );
+
+    expect(deps.updateConversationTemperatura).toHaveBeenCalledWith('conv-1', 'caliente');
+    expect(deps.sendLeadAlertEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ customerPhone: '5491100000000' })
+    );
+  });
+
+  it('con la feature habilitada pero menos de 3 mensajes del usuario, no dispara la alerta', async () => {
+    const deps = makeDeps({
+      isAlertaLeadCalienteHabilitada: vi.fn().mockResolvedValue(true),
+      loadRecentMessages: vi.fn().mockResolvedValue([{ role: 'user', content: 'Hola' }]),
+      callOpenRouter: vi
+        .fn()
+        .mockResolvedValueOnce({ message: { content: 'caliente' } })
+        .mockResolvedValueOnce({ message: { role: 'assistant', content: 'Hola!' } }),
+    });
+
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Ya mismo' },
+      deps
+    );
+
+    expect(deps.sendLeadAlertEmail).not.toHaveBeenCalled();
   });
 });

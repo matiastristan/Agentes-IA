@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service-client';
 import { verifyMetaSignature } from '@/lib/whatsapp/verify-signature';
 import { sendWhatsAppMessage } from '@/lib/whatsapp/send-message';
+import { sendLeadAlertEmail } from '@/lib/notifications/send-lead-alert-email';
 import { callOpenRouter } from '@/lib/agent/openrouter-client';
 import { executeToolCall } from '@/lib/agent/tool-handlers';
 import { handleIncomingMessage } from '@/lib/agent/handle-incoming-message';
@@ -139,6 +140,19 @@ export async function POST(request: NextRequest) {
       executeToolCall: (name, args, ctx) =>
         executeToolCall(name, args, { ...ctx, phone: ctx.phone ?? message.from, supabase }),
       sendWhatsAppMessage,
+      isAlertaLeadCalienteHabilitada: async (tenantId) => {
+        const { data } = await supabase
+          .from('negocio_feature_overrides')
+          .select('habilitado')
+          .eq('tenant_id', tenantId)
+          .eq('feature_key', 'alertas_lead_caliente')
+          .single();
+        return data?.habilitado ?? false;
+      },
+      updateConversationTemperatura: async (conversationId, temperatura) => {
+        await supabase.from('conversations').update({ temperatura }).eq('id', conversationId);
+      },
+      sendLeadAlertEmail,
     }
   );
 
