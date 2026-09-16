@@ -80,6 +80,32 @@ export function ConectarWhatsAppButton() {
     return () => window.removeEventListener('message', handleSignupMessage);
   }, [handleSignupMessage]);
 
+  async function handleFacebookLoginResponse(response: { authResponse?: { code?: string } }) {
+    const code = response.authResponse?.code;
+    const phoneNumberId = window.sessionStorage.getItem('embedded_signup_phone_number_id');
+
+    if (!code || !phoneNumberId) {
+      setError('No se completó la conexión con WhatsApp.');
+      setLoading(false);
+      return;
+    }
+
+    const res = await fetch('/api/negocio/meta/conectar', {
+      method: 'POST',
+      body: JSON.stringify({ code, phoneNumberId }),
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error ?? 'No se pudo completar la conexión.');
+      return;
+    }
+
+    router.refresh();
+  }
+
   async function handleClick() {
     setLoading(true);
     setError(null);
@@ -87,30 +113,12 @@ export function ConectarWhatsAppButton() {
     await loadFacebookSdk();
 
     window.FB!.login(
-      async (response) => {
-        const code = response.authResponse?.code;
-        const phoneNumberId = window.sessionStorage.getItem('embedded_signup_phone_number_id');
-
-        if (!code || !phoneNumberId) {
-          setError('No se completó la conexión con WhatsApp.');
-          setLoading(false);
-          return;
-        }
-
-        const res = await fetch('/api/negocio/meta/conectar', {
-          method: 'POST',
-          body: JSON.stringify({ code, phoneNumberId }),
-        });
-
-        setLoading(false);
-
-        if (!res.ok) {
-          const data = await res.json();
-          setError(data.error ?? 'No se pudo completar la conexión.');
-          return;
-        }
-
-        router.refresh();
+      // El SDK de Facebook rechaza en runtime que este callback sea una
+      // función `async` directamente ("Expression is of type asyncfunction,
+      // not function") — por eso la función que le pasamos NO es async, y
+      // delega el trabajo real a una función async interna aparte.
+      (response) => {
+        void handleFacebookLoginResponse(response);
       },
       {
         config_id: process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID,
