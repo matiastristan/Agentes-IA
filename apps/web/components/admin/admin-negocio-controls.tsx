@@ -12,6 +12,7 @@ interface Props {
   overridesActuales: Record<string, boolean>;
   planFechaAltaActual: string | null;
   planCicloActual: string;
+  emailAlertasActual: string | null;
 }
 
 export function AdminNegocioControls({
@@ -20,10 +21,12 @@ export function AdminNegocioControls({
   overridesActuales,
   planFechaAltaActual,
   planCicloActual,
+  emailAlertasActual,
 }: Props) {
   const router = useRouter();
   const [fechaAlta, setFechaAlta] = useState(planFechaAltaActual ?? '');
   const [ciclo, setCiclo] = useState(planCicloActual);
+  const [emailAlertas, setEmailAlertas] = useState(emailAlertasActual ?? '');
   const [loading, setLoading] = useState<string | null>(null);
 
   async function cambiarEstadoCuenta(nuevoEstado: string) {
@@ -56,6 +59,16 @@ export function AdminNegocioControls({
     router.refresh();
   }
 
+  async function guardarEmailAlertas() {
+    setLoading('email-alertas');
+    await fetch(`/api/admin/negocios/${tenantId}/email-alertas`, {
+      method: 'POST',
+      body: JSON.stringify({ email_alertas: emailAlertas }),
+    });
+    setLoading(null);
+    router.refresh();
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -77,7 +90,7 @@ export function AdminNegocioControls({
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-text-secondary">Features de upsell puntual</span>
-        {['multi_recurso', 'carga_manual_turnos', 'mobile_vista_scroll_horizontal'].map((key) => (
+        {['multi_recurso', 'carga_manual_turnos', 'mobile_vista_scroll_horizontal', 'alertas_lead_caliente'].map((key) => (
           <Toggle
             key={key}
             label={key}
@@ -86,6 +99,28 @@ export function AdminNegocioControls({
             onCheckedChange={(value) => toggleOverride(key, value)}
           />
         ))}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-text-secondary">
+          Email para alertas de lead caliente
+        </span>
+        <p className="text-xs text-text-muted">
+          Solo tiene efecto si "alertas_lead_caliente" está activado arriba.
+        </p>
+        <Input
+          type="email"
+          placeholder="dueno@negocio.com"
+          value={emailAlertas}
+          onChange={(e) => setEmailAlertas(e.target.value)}
+        />
+        <Button
+          size="sm"
+          disabled={loading === 'email-alertas' || !emailAlertas}
+          onClick={guardarEmailAlertas}
+        >
+          Guardar email de alertas
+        </Button>
       </div>
 
       <div className="flex flex-col gap-2">

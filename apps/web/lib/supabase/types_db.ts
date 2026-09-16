@@ -392,6 +392,7 @@ export type Database = {
           color_palette: string
           created_at: string
           dashboard_view: string
+          email_alertas: string | null
           estado_cuenta: string
           horarios: Json
           id: string
@@ -420,6 +421,7 @@ export type Database = {
           color_palette?: string
           created_at?: string
           dashboard_view?: string
+          email_alertas?: string | null
           estado_cuenta?: string
           horarios?: Json
           id?: string
@@ -448,6 +450,7 @@ export type Database = {
           color_palette?: string
           created_at?: string
           dashboard_view?: string
+          email_alertas?: string | null
           estado_cuenta?: string
           horarios?: Json
           id?: string
