@@ -56,6 +56,11 @@ describe('hasFeature', () => {
     expect(hasFeature('premium', [], 'mobile_vista_scroll_horizontal')).toBe(false);
   });
 
+  it('alertas_lead_caliente tampoco está en ningún tier por default (upsell puntual)', () => {
+    expect(hasFeature('base', [], 'alertas_lead_caliente')).toBe(false);
+    expect(hasFeature('premium', [], 'alertas_lead_caliente')).toBe(false);
+  });
+
   it('un override habilita multi_recurso para un negocio puntual sin importar el tier', () => {
     const overrides = [{ feature_key: 'multi_recurso', habilitado: true }];
     expect(hasFeature('base', overrides, 'multi_recurso')).toBe(true);

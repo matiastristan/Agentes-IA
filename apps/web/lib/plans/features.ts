@@ -21,7 +21,8 @@ export type FeatureKey =
   | 'gestion_senas'
   | 'multi_recurso'
   | 'carga_manual_turnos'
-  | 'mobile_vista_scroll_horizontal';
+  | 'mobile_vista_scroll_horizontal'
+  | 'alertas_lead_caliente';
 
 const BASE_FEATURES: FeatureKey[] = [
   'agente_responde',
