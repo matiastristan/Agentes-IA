@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   const phoneNumberId = change.metadata.phone_number_id;
   const supabase = createServiceClient();
 
-  await handleIncomingMessage(
+  const result = await handleIncomingMessage(
     { phoneNumberId, from: message.from, text: message.text.body },
     {
       findNegocioByPhoneNumberId: async (id) => {
@@ -106,6 +106,10 @@ export async function POST(request: NextRequest) {
       sendWhatsAppMessage,
     }
   );
+
+  if (result.sendError) {
+    console.error('El agente respondió pero no se pudo entregar por WhatsApp:', result.sendError);
+  }
 
   return new NextResponse('OK', { status: 200 });
 }

@@ -42,7 +42,7 @@ interface Deps {
     accessToken: string;
     to: string;
     text: string;
-  }) => Promise<{ success: boolean }>;
+  }) => Promise<{ success: boolean; error?: string }>;
 }
 
 // Modelos gratuitos de OpenRouter, con fallback en orden: si el primero se
@@ -57,7 +57,7 @@ const FREE_MODELS = [
 export async function handleIncomingMessage(
   incoming: IncomingMessage,
   deps: Deps
-): Promise<{ handled: boolean; responseText?: string }> {
+): Promise<{ handled: boolean; responseText?: string; sendError?: string }> {
   const negocio = await deps.findNegocioByPhoneNumberId(incoming.phoneNumberId);
 
   if (!negocio) {
@@ -123,16 +123,21 @@ export async function handleIncomingMessage(
       toolCalled: toolCall.function.name,
     });
 
+    let sendError: string | undefined;
     if (negocio.access_token) {
-      await deps.sendWhatsAppMessage({
+      const sendResult = await deps.sendWhatsAppMessage({
         phoneNumberId: negocio.phone_number_id,
         accessToken: negocio.access_token,
         to: incoming.from,
         text: followUp.message.content,
       });
+      if (!sendResult.success) {
+        sendError = sendResult.error;
+        console.error('No se pudo enviar la respuesta por WhatsApp:', sendResult.error);
+      }
     }
 
-    return { handled: true, responseText: followUp.message.content };
+    return { handled: true, responseText: followUp.message.content, sendError };
   }
 
   await deps.saveMessage({
@@ -142,14 +147,19 @@ export async function handleIncomingMessage(
     content: message.content,
   });
 
+  let sendError: string | undefined;
   if (negocio.access_token) {
-    await deps.sendWhatsAppMessage({
+    const sendResult = await deps.sendWhatsAppMessage({
       phoneNumberId: negocio.phone_number_id,
       accessToken: negocio.access_token,
       to: incoming.from,
       text: message.content,
     });
+    if (!sendResult.success) {
+      sendError = sendResult.error;
+      console.error('No se pudo enviar la respuesta por WhatsApp:', sendResult.error);
+    }
   }
 
-  return { handled: true, responseText: message.content };
+  return { handled: true, responseText: message.content, sendError };
 }

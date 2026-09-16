@@ -127,4 +127,24 @@ describe('handleIncomingMessage', () => {
     expect(deps.callOpenRouter).not.toHaveBeenCalled();
     expect(result.handled).toBe(false);
   });
+
+  it('si el envío por WhatsApp falla, el resultado lo expone (no se pierde en silencio)', async () => {
+    const deps = makeDeps({
+      sendWhatsAppMessage: vi.fn().mockResolvedValue({ success: false, error: 'Meta respondió 401' }),
+    });
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(result.sendError).toBe('Meta respondió 401');
+  });
+
+  it('si el envío por WhatsApp funciona, sendError queda undefined', async () => {
+    const deps = makeDeps();
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(result.sendError).toBeUndefined();
+  });
 });
