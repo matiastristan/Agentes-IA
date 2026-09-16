@@ -1,3 +1,5 @@
+import { normalizePhoneForSending } from './normalize-phone-for-sending';
+
 interface SendMessageParams {
   phoneNumberId: string;
   accessToken: string;
@@ -26,7 +28,7 @@ export async function sendWhatsAppMessage({
       },
       body: JSON.stringify({
         messaging_product: 'whatsapp',
-        to,
+        to: normalizePhoneForSending(to),
         text: { body: text },
       }),
     });

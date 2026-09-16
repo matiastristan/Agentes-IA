@@ -31,13 +31,13 @@ describe('sendWhatsAppMessage', () => {
     await sendWhatsAppMessage({
       phoneNumberId: '123456',
       accessToken: 'token-abc',
-      to: '5491100000000',
+      to: '12125551234',
       text: 'Hola',
     });
 
     const [, options] = (fetch as any).mock.calls[0];
     const body = JSON.parse(options.body);
-    expect(body.to).toBe('5491100000000');
+    expect(body.to).toBe('12125551234');
     expect(body.text.body).toBe('Hola');
   });
 
@@ -96,5 +96,18 @@ describe('sendWhatsAppMessage', () => {
 
     expect(result.success).toBe(true);
     expect(result.wamid).toBe('wamid.HBgLNTQ5MTEwMDAwMDAwFQIAERgSMTIzNDU2Nzg5MEFCQ0RFMTIA');
+  });
+
+  it('normaliza números argentinos con el 9 extra antes de mandarlos a Meta', async () => {
+    await sendWhatsAppMessage({
+      phoneNumberId: '123456',
+      accessToken: 'token-abc',
+      to: '5493876289131',
+      text: 'Hola',
+    });
+
+    const [, options] = (fetch as any).mock.calls[0];
+    const body = JSON.parse(options.body);
+    expect(body.to).toBe('543876289131');
   });
 });
