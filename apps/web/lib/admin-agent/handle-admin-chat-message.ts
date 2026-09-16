@@ -32,7 +32,7 @@ export async function handleAdminChatMessage(
   ];
 
   let { message } = await deps.callOpenRouter({
-    model: 'anthropic/claude-3.5-sonnet',
+    model: 'anthropic/claude-sonnet-4.5',
     messages,
     tools: ADMIN_TOOLS,
   });
@@ -44,7 +44,7 @@ export async function handleAdminChatMessage(
     const toolResult = await deps.executeAdminToolCall(toolCall.function.name, args, {});
 
     const followUp = await deps.callOpenRouter({
-      model: 'anthropic/claude-3.5-sonnet',
+      model: 'anthropic/claude-sonnet-4.5',
       messages: [
         ...messages,
         message,

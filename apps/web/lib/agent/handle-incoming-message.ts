@@ -46,8 +46,8 @@ interface Deps {
 }
 
 const MODEL_BY_TIER: Record<'base' | 'pro', string> = {
-  base: 'anthropic/claude-3.5-haiku',
-  pro: 'anthropic/claude-3.5-sonnet',
+  base: 'anthropic/claude-haiku-4.5',
+  pro: 'anthropic/claude-sonnet-4.5',
 };
 
 export async function handleIncomingMessage(
