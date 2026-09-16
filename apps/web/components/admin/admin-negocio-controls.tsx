@@ -12,7 +12,6 @@ interface Props {
   overridesActuales: Record<string, boolean>;
   planFechaAltaActual: string | null;
   planCicloActual: string;
-  emailAlertasActual: string | null;
 }
 
 export function AdminNegocioControls({
@@ -21,12 +20,10 @@ export function AdminNegocioControls({
   overridesActuales,
   planFechaAltaActual,
   planCicloActual,
-  emailAlertasActual,
 }: Props) {
   const router = useRouter();
   const [fechaAlta, setFechaAlta] = useState(planFechaAltaActual ?? '');
   const [ciclo, setCiclo] = useState(planCicloActual);
-  const [emailAlertas, setEmailAlertas] = useState(emailAlertasActual ?? '');
   const [loading, setLoading] = useState<string | null>(null);
 
   async function cambiarEstadoCuenta(nuevoEstado: string) {
@@ -54,16 +51,6 @@ export function AdminNegocioControls({
     await fetch(`/api/admin/negocios/${tenantId}/plan-alta`, {
       method: 'POST',
       body: JSON.stringify({ plan_fecha_alta: fechaAlta, plan_ciclo_facturacion: ciclo }),
-    });
-    setLoading(null);
-    router.refresh();
-  }
-
-  async function guardarEmailAlertas() {
-    setLoading('email-alertas');
-    await fetch(`/api/admin/negocios/${tenantId}/email-alertas`, {
-      method: 'POST',
-      body: JSON.stringify({ email_alertas: emailAlertas }),
     });
     setLoading(null);
     router.refresh();
@@ -99,28 +86,10 @@ export function AdminNegocioControls({
             onCheckedChange={(value) => toggleOverride(key, value)}
           />
         ))}
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-text-secondary">
-          Email para alertas de lead caliente
-        </span>
-        <p className="text-xs text-text-muted">
-          Solo tiene efecto si "alertas_lead_caliente" está activado arriba.
+        <p className="text-xs text-text-muted mt-1">
+          El email de alertas lo configura cada negocio desde su propio panel
+          (/configuracion/alertas), no desde acá.
         </p>
-        <Input
-          type="email"
-          placeholder="dueno@negocio.com"
-          value={emailAlertas}
-          onChange={(e) => setEmailAlertas(e.target.value)}
-        />
-        <Button
-          size="sm"
-          disabled={loading === 'email-alertas' || !emailAlertas}
-          onClick={guardarEmailAlertas}
-        >
-          Guardar email de alertas
-        </Button>
       </div>
 
       <div className="flex flex-col gap-2">

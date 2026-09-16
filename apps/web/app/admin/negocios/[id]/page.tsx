@@ -54,7 +54,6 @@ export default async function AdminNegocioDetallePage({
             overridesActuales={overridesMap}
             planFechaAltaActual={negocio?.plan_fecha_alta ?? null}
             planCicloActual={negocio?.plan_ciclo_facturacion ?? 'mensual'}
-            emailAlertasActual={negocio?.email_alertas ?? null}
           />
         </CardContent>
       </Card>
