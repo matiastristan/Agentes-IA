@@ -24,11 +24,11 @@ export default async function ConfiguracionAlertasPage() {
   const habilitada = override?.habilitado ?? false;
 
   return (
-    <main className="min-h-screen bg-background p-8">
-      <h1 className="text-2xl font-semibold text-text-primary mb-6">Alertas de leads calientes</h1>
+    <main className="flex-1 bg-background p-6 md:p-8">
+      <h1 className="text-2xl font-semibold text-text-primary mb-6 animate-fade-slide-in">Alertas de leads calientes</h1>
 
       {!habilitada ? (
-        <Card>
+        <Card className="animate-fade-slide-in">
           <CardContent>
             <p className="text-sm text-text-secondary py-4">
               Esta función todavía no está activada en tu plan. Contactá a soporte
@@ -38,7 +38,7 @@ export default async function ConfiguracionAlertasPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="animate-fade-slide-in">
           <CardHeader>
             <CardTitle>Tu email de notificaciones</CardTitle>
           </CardHeader>

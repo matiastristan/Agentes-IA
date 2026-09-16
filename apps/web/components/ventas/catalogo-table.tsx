@@ -52,7 +52,7 @@ export function CatalogoTable({
           const local = valores[p.id];
           const alerta = checkStockAlert(local.stock, p.umbral_alerta_stock ?? null);
           return (
-            <tr key={p.id} className="border-b border-border">
+            <tr key={p.id} className="border-b border-border transition-colors duration-150 ease-out hover:bg-bg-tint">
               <td className="py-2 pr-4">{p.nombre}</td>
               <td className="py-2 pr-4">
                 <input

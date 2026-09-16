@@ -17,10 +17,10 @@ export default async function ConfiguracionWhatsAppPage() {
   const conectado = negocio?.meta_connection_status === 'connected';
 
   return (
-    <main className="min-h-screen bg-background p-8">
-      <h1 className="text-2xl font-semibold text-text-primary mb-6">WhatsApp</h1>
+    <main className="flex-1 bg-background p-6 md:p-8">
+      <h1 className="text-2xl font-semibold text-text-primary mb-6 animate-fade-slide-in">WhatsApp</h1>
 
-      <Card>
+      <Card className="animate-fade-slide-in">
         <CardHeader>
           <CardTitle>Estado de la conexión</CardTitle>
         </CardHeader>
