@@ -147,4 +147,36 @@ describe('handleIncomingMessage', () => {
     );
     expect(result.sendError).toBeUndefined();
   });
+
+  it('cuando el envío es exitoso, saveMessage del asistente recibe wamid y status sent', async () => {
+    const deps = makeDeps({
+      sendWhatsAppMessage: vi.fn().mockResolvedValue({ success: true, wamid: 'wamid.ABC123' }),
+    });
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(deps.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'assistant', wamid: 'wamid.ABC123', status: 'sent' })
+    );
+  });
+
+  it('cuando el envío falla, saveMessage del asistente recibe status failed y statusError', async () => {
+    const deps = makeDeps({
+      sendWhatsAppMessage: vi
+        .fn()
+        .mockResolvedValue({ success: false, error: 'Meta respondió 400: número inválido' }),
+    });
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(deps.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        role: 'assistant',
+        status: 'failed',
+        statusError: 'Meta respondió 400: número inválido',
+      })
+    );
+  });
 });

@@ -33,6 +33,29 @@ export async function POST(request: NextRequest) {
   const body = JSON.parse(rawBody);
   const change = body?.entry?.[0]?.changes?.[0]?.value;
   const message = change?.messages?.[0];
+  const statuses = change?.statuses;
+  const supabase = createServiceClient();
+
+  // Meta manda las actualizaciones de estado de entrega (sent/delivered/read/failed)
+  // en un array `statuses` separado del array `messages`. Actualizamos el
+  // mensaje guardado que coincida con ese wamid.
+  if (statuses?.length) {
+    for (const s of statuses) {
+      const nuevoEstado = ['sent', 'delivered', 'read', 'failed'].includes(s.status)
+        ? s.status
+        : null;
+      if (!nuevoEstado) continue;
+
+      await supabase
+        .from('messages')
+        .update({
+          status: nuevoEstado,
+          status_error: s.errors?.[0]?.title ?? null,
+        })
+        .eq('wamid', s.id);
+    }
+    return new NextResponse('OK', { status: 200 });
+  }
 
   // Meta manda muchos tipos de eventos por este mismo webhook (status de entrega,
   // lectura, etc.) — solo nos importan los mensajes de texto entrantes. Todo lo
@@ -42,7 +65,6 @@ export async function POST(request: NextRequest) {
   }
 
   const phoneNumberId = change.metadata.phone_number_id;
-  const supabase = createServiceClient();
 
   const result = await handleIncomingMessage(
     { phoneNumberId, from: message.from, text: message.text.body },
@@ -91,13 +113,16 @@ export async function POST(request: NextRequest) {
           .reverse()
           .filter((m) => m.role === 'user' || m.role === 'assistant') as never;
       },
-      saveMessage: async ({ tenantId, conversationId, role, content, toolCalled }) => {
+      saveMessage: async ({ tenantId, conversationId, role, content, toolCalled, wamid, status, statusError }) => {
         await supabase.from('messages').insert({
           tenant_id: tenantId,
           conversation_id: conversationId,
           role,
           content,
           tool_called: toolCalled ?? null,
+          wamid: wamid ?? null,
+          status: status ?? 'sent',
+          status_error: statusError ?? null,
         });
       },
       callOpenRouter,

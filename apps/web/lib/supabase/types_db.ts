@@ -332,8 +332,11 @@ export type Database = {
           created_at: string
           id: string
           role: string
+          status: string
+          status_error: string | null
           tenant_id: string
           tool_called: string | null
+          wamid: string | null
         }
         Insert: {
           content: string
@@ -341,8 +344,11 @@ export type Database = {
           created_at?: string
           id?: string
           role: string
+          status?: string
+          status_error?: string | null
           tenant_id: string
           tool_called?: string | null
+          wamid?: string | null
         }
         Update: {
           content?: string
@@ -350,8 +356,11 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          status?: string
+          status_error?: string | null
           tenant_id?: string
           tool_called?: string | null
+          wamid?: string | null
         }
         Relationships: [
           {

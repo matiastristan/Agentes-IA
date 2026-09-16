@@ -32,6 +32,9 @@ interface Deps {
     role: 'user' | 'assistant';
     content: string;
     toolCalled?: string;
+    wamid?: string;
+    status?: 'sent' | 'failed';
+    statusError?: string;
   }) => Promise<void>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callOpenRouter: (params: any) => Promise<{ message: any }>;
@@ -42,7 +45,7 @@ interface Deps {
     accessToken: string;
     to: string;
     text: string;
-  }) => Promise<{ success: boolean; error?: string }>;
+  }) => Promise<{ success: boolean; error?: string; wamid?: string }>;
 }
 
 // Modelos gratuitos de OpenRouter, con fallback en orden: si el primero se
@@ -53,6 +56,53 @@ const FREE_MODELS = [
   'google/gemma-4-26b-a4b-it:free',
   'google/gemma-4-31b-it:free',
 ];
+
+// Envía la respuesta por WhatsApp y guarda el mensaje del asistente con el
+// resultado real del envío (wamid si funcionó, status/statusError si falló).
+// Compartido entre la rama con tool-call y la rama de respuesta directa para
+// no duplicar esta lógica.
+async function sendAndSaveAssistantMessage(
+  negocio: NegocioLookup,
+  conversationId: string,
+  content: string,
+  incoming: IncomingMessage,
+  deps: Deps,
+  toolCalled?: string
+): Promise<string | undefined> {
+  let sendError: string | undefined;
+  let wamid: string | undefined;
+  let status: 'sent' | 'failed' = 'sent';
+
+  if (negocio.access_token) {
+    const sendResult = await deps.sendWhatsAppMessage({
+      phoneNumberId: negocio.phone_number_id,
+      accessToken: negocio.access_token,
+      to: incoming.from,
+      text: content,
+    });
+
+    if (sendResult.success) {
+      wamid = sendResult.wamid;
+    } else {
+      status = 'failed';
+      sendError = sendResult.error;
+      console.error('No se pudo enviar la respuesta por WhatsApp:', sendResult.error);
+    }
+  }
+
+  await deps.saveMessage({
+    tenantId: negocio.tenant_id,
+    conversationId,
+    role: 'assistant',
+    content,
+    toolCalled,
+    wamid,
+    status,
+    statusError: sendError,
+  });
+
+  return sendError;
+}
 
 export async function handleIncomingMessage(
   incoming: IncomingMessage,
@@ -115,51 +165,25 @@ export async function handleIncomingMessage(
       tools,
     });
 
-    await deps.saveMessage({
-      tenantId: negocio.tenant_id,
-      conversationId: conversation.id,
-      role: 'assistant',
-      content: followUp.message.content,
-      toolCalled: toolCall.function.name,
-    });
-
-    let sendError: string | undefined;
-    if (negocio.access_token) {
-      const sendResult = await deps.sendWhatsAppMessage({
-        phoneNumberId: negocio.phone_number_id,
-        accessToken: negocio.access_token,
-        to: incoming.from,
-        text: followUp.message.content,
-      });
-      if (!sendResult.success) {
-        sendError = sendResult.error;
-        console.error('No se pudo enviar la respuesta por WhatsApp:', sendResult.error);
-      }
-    }
+    const sendError = await sendAndSaveAssistantMessage(
+      negocio,
+      conversation.id,
+      followUp.message.content,
+      incoming,
+      deps,
+      toolCall.function.name
+    );
 
     return { handled: true, responseText: followUp.message.content, sendError };
   }
 
-  await deps.saveMessage({
-    tenantId: negocio.tenant_id,
-    conversationId: conversation.id,
-    role: 'assistant',
-    content: message.content,
-  });
-
-  let sendError: string | undefined;
-  if (negocio.access_token) {
-    const sendResult = await deps.sendWhatsAppMessage({
-      phoneNumberId: negocio.phone_number_id,
-      accessToken: negocio.access_token,
-      to: incoming.from,
-      text: message.content,
-    });
-    if (!sendResult.success) {
-      sendError = sendResult.error;
-      console.error('No se pudo enviar la respuesta por WhatsApp:', sendResult.error);
-    }
-  }
+  const sendError = await sendAndSaveAssistantMessage(
+    negocio,
+    conversation.id,
+    message.content,
+    incoming,
+    deps
+  );
 
   return { handled: true, responseText: message.content, sendError };
 }
