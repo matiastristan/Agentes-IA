@@ -10,6 +10,20 @@ interface Message {
   content: string;
 }
 
+function TypingIndicator() {
+  return (
+    <div className="flex gap-1 items-center px-3 py-2" aria-label="El agente está escribiendo">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="h-1.5 w-1.5 rounded-full bg-text-muted animate-pulse"
+          style={{ animationDelay: `${i * 150}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function AdminChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
@@ -37,31 +51,41 @@ export default function AdminChatPage() {
 
   return (
     <main className="flex-1 bg-background p-6 md:p-8 flex flex-col">
-      <h1 className="text-2xl font-semibold text-text-primary mb-6">Tu agente</h1>
+      <h1 className="text-2xl font-semibold text-text-primary mb-6 animate-fade-slide-in">
+        Tu agente
+      </h1>
 
-      <Card className="flex-1 mb-4 overflow-y-auto">
+      <Card className="flex-1 mb-4 overflow-y-auto animate-fade-slide-in">
         <CardHeader>
           <CardTitle>Conversación</CardTitle>
         </CardHeader>
         <CardContent>
+          {messages.length === 0 && !loading && (
+            <p className="text-sm text-text-muted">
+              Preguntale algo como &quot;¿Cómo viene la plataforma?&quot; o &quot;¿Cuánto facturé este mes?&quot;
+            </p>
+          )}
           <div className="flex flex-col gap-3">
             {messages.map((m, i) => (
-              <div
-                key={i}
-                className={m.role === 'user' ? 'text-right' : 'text-left'}
-              >
+              <div key={i} className={m.role === 'user' ? 'text-right animate-fade-slide-in' : 'text-left animate-fade-slide-in'}>
                 <span
                   className={
                     m.role === 'user'
                       ? 'inline-block bg-primary-tint text-primary rounded-lg px-3 py-2 text-sm'
-                      : 'inline-block bg-gray-50 text-text-primary rounded-lg px-3 py-2 text-sm'
+                      : 'inline-block bg-bg-tint text-text-primary rounded-lg px-3 py-2 text-sm'
                   }
                 >
                   {m.content}
                 </span>
               </div>
             ))}
-            {loading && <p className="text-sm text-text-muted">Pensando...</p>}
+            {loading && (
+              <div className="text-left">
+                <span className="inline-block bg-bg-tint rounded-lg">
+                  <TypingIndicator />
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
