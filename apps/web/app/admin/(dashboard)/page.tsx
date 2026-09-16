@@ -1,4 +1,10 @@
 import { createServiceClient } from '@/lib/supabase/service-client';
+
+// Esta página usa service_role (sin cookies()), así que Next.js no detecta
+// automáticamente que necesita datos en vivo — sin esto intenta pre-renderizarla
+// como estática en build time, lo cual además sería incorrecto para datos
+// sensibles de admin que nunca deben quedar cacheados.
+export const dynamic = 'force-dynamic';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { KPICard } from '@/components/ui/kpi-card';
 
