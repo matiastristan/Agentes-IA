@@ -8,7 +8,8 @@ interface ChatMessage {
 }
 
 interface CallOpenRouterParams {
-  model: string;
+  model?: string;
+  models?: string[];
   messages: ChatMessage[];
   tools: ToolDefinition[];
 }
@@ -18,16 +19,17 @@ interface OpenRouterResult {
 }
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS_PER_MODEL = 3;
 
-export async function callOpenRouter({
-  model,
-  messages,
-  tools,
-}: CallOpenRouterParams): Promise<OpenRouterResult> {
+async function attemptModel(
+  model: string,
+  messages: ChatMessage[],
+  tools: ToolDefinition[],
+  maxAttempts: number
+): Promise<OpenRouterResult> {
   let lastError: unknown;
 
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const response = await fetch(OPENROUTER_URL, {
         method: 'POST',
@@ -54,7 +56,32 @@ export async function callOpenRouter({
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('No se pudo obtener respuesta de OpenRouter tras 3 intentos');
+  throw lastError instanceof Error ? lastError : new Error(`No se pudo obtener respuesta de OpenRouter (${model})`);
+}
+
+export async function callOpenRouter({
+  model,
+  models,
+  messages,
+  tools,
+}: CallOpenRouterParams): Promise<OpenRouterResult> {
+  // Lista de modelos con fallback (ej. rotar entre modelos gratuitos cuando
+  // uno se queda sin cupo). Cada modelo se prueba UNA vez antes de pasar al
+  // siguiente — el retry de MAX_ATTEMPTS_PER_MODEL solo aplica cuando se pasa
+  // un único `model` (comportamiento histórico, sin cambios).
+  if (models && models.length > 0) {
+    let lastError: unknown;
+    for (const m of models) {
+      try {
+        return await attemptModel(m, messages, tools, 1);
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    throw lastError instanceof Error
+      ? lastError
+      : new Error('No se pudo obtener respuesta de ningún modelo de la lista');
+  }
+
+  return attemptModel(model!, messages, tools, MAX_ATTEMPTS_PER_MODEL);
 }

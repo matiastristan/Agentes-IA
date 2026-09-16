@@ -77,4 +77,56 @@ describe('callOpenRouter', () => {
     expect(result.message.content).toBe('OK');
     expect(fetch).toHaveBeenCalledTimes(2);
   });
+
+  it('con una lista de modelos, prueba el siguiente si el primero falla (ej. 402 sin crédito)', async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({ ok: false, status: 402 })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ choices: [{ message: { role: 'assistant', content: 'Desde el segundo modelo' } }] }),
+      });
+
+    const result = await callOpenRouter({
+      models: ['openrouter/free', 'z-ai/glm-5.2:free'],
+      messages: [{ role: 'user', content: 'hola' }],
+      tools: [],
+    });
+
+    expect(result.message.content).toBe('Desde el segundo modelo');
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('con una lista de modelos, usa el body con el model correcto en cada intento', async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({ ok: false, status: 429 })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ choices: [{ message: { role: 'assistant', content: 'ok' } }] }),
+      });
+
+    await callOpenRouter({
+      models: ['openrouter/free', 'google/gemma-4-26b-a4b-it:free'],
+      messages: [{ role: 'user', content: 'hola' }],
+      tools: [],
+    });
+
+    const firstBody = JSON.parse((fetch as any).mock.calls[0][1].body);
+    const secondBody = JSON.parse((fetch as any).mock.calls[1][1].body);
+    expect(firstBody.model).toBe('openrouter/free');
+    expect(secondBody.model).toBe('google/gemma-4-26b-a4b-it:free');
+  });
+
+  it('si todos los modelos de la lista fallan, tira error', async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({ ok: false, status: 402 })
+      .mockResolvedValueOnce({ ok: false, status: 402 });
+
+    await expect(
+      callOpenRouter({
+        models: ['openrouter/free', 'z-ai/glm-5.2:free'],
+        messages: [{ role: 'user', content: 'hola' }],
+        tools: [],
+      })
+    ).rejects.toThrow();
+  });
 });

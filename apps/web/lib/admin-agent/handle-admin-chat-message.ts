@@ -1,5 +1,12 @@
 import { ADMIN_TOOLS } from './admin-tools';
 
+const FREE_MODELS = [
+  'openrouter/free',
+  'z-ai/glm-5.2:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'google/gemma-4-31b-it:free',
+];
+
 const ADMIN_SYSTEM_PROMPT = `Sos el asistente personal de Matías, dueño de la plataforma AgentesIA.
 Tu trabajo es ayudarlo a entender cómo crece su negocio (cantidad de negocios
 clientes, facturación que él cobra). NUNCA tenés acceso a las ventas o datos
@@ -32,7 +39,7 @@ export async function handleAdminChatMessage(
   ];
 
   let { message } = await deps.callOpenRouter({
-    model: 'anthropic/claude-sonnet-4.5',
+    models: FREE_MODELS,
     messages,
     tools: ADMIN_TOOLS,
   });
@@ -44,7 +51,7 @@ export async function handleAdminChatMessage(
     const toolResult = await deps.executeAdminToolCall(toolCall.function.name, args, {});
 
     const followUp = await deps.callOpenRouter({
-      model: 'anthropic/claude-sonnet-4.5',
+      models: FREE_MODELS,
       messages: [
         ...messages,
         message,

@@ -45,10 +45,14 @@ interface Deps {
   }) => Promise<{ success: boolean }>;
 }
 
-const MODEL_BY_TIER: Record<'base' | 'pro', string> = {
-  base: 'anthropic/claude-haiku-4.5',
-  pro: 'anthropic/claude-sonnet-4.5',
-};
+// Modelos gratuitos de OpenRouter, con fallback en orden: si el primero se
+// queda sin cupo (402/429), se prueba el siguiente automáticamente.
+const FREE_MODELS = [
+  'openrouter/free',
+  'z-ai/glm-5.2:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'google/gemma-4-31b-it:free',
+];
 
 export async function handleIncomingMessage(
   incoming: IncomingMessage,
@@ -76,7 +80,6 @@ export async function handleIncomingMessage(
 
   const systemPrompt = buildSystemPrompt(negocio);
   const tools = getToolsForTier(negocio.tier);
-  const model = MODEL_BY_TIER[negocio.tier];
 
   const messages = [
     { role: 'system' as const, content: systemPrompt },
@@ -84,7 +87,7 @@ export async function handleIncomingMessage(
     { role: 'user' as const, content: incoming.text },
   ];
 
-  let { message } = await deps.callOpenRouter({ model, messages, tools });
+  let { message } = await deps.callOpenRouter({ models: FREE_MODELS, messages, tools });
 
   // Si el modelo pidió usar una tool, la ejecutamos y le devolvemos el resultado
   // para que genere la respuesta final en texto (segundo round-trip).
@@ -99,7 +102,7 @@ export async function handleIncomingMessage(
     });
 
     const followUp = await deps.callOpenRouter({
-      model,
+      models: FREE_MODELS,
       messages: [
         ...messages,
         message,
