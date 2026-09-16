@@ -154,6 +154,30 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-panel-admin-d1-design.md
 
 ⏳ Backlog abierto: campañas masivas + resumen IA de historial largo, sincronización con Google Calendar, sistema completo de cobro/logística para B, BYOK.
 
+## Rebrand: FactorIA — Tu Fábrica de Agentes
+
+El producto pasó a llamarse **FactorIA**. Actualizado en: login, admin login,
+metadata del sitio, emails de alerta, system prompt del agente admin. El
+nombre del proyecto de Supabase (`AgentesIA`) queda igual — es infraestructura,
+no marca visible al usuario.
+
+## Backlog de diseño/producto (post-rediseño visual)
+
+- **Widget de reserva público** (para el cliente final, sin pasar por
+  WhatsApp): el usuario compartió capturas de referencia de "Canchas Fair
+  Play" — selector de deporte/cancha, fechas en píldoras horizontales,
+  horarios disponibles, tarjetas de cancha con precio y botón de reservar.
+  Estética limpia, acento en violeta/índigo (compatible con nuestra paleta
+  "cool" existente). Es la base visual para cuando se diseñe el sub-proyecto
+  de "cuenta abierta / consumo en vivo" (turnos + venta de productos en la
+  misma sesión, cierre con detalle por WhatsApp)
+- **Landing de autogestión para clientes nuevos**: una vez que todos los
+  rubros/segmentos estén desarrollados y probados, una landing pública donde
+  un negocio nuevo elige su rubro (ej. "barbería"), paga, y configura su
+  cuenta + system prompt completamente solo, sin intervención de Matías.
+  Explícitamente para DESPUÉS de validar el producto completo — no es
+  prioridad ahora
+
 ## Desarrollo post-debugging: 4 mejoras de arquitectura ✅
 
 Tras las pruebas end-to-end reales (ver sección abajo), se implementaron 4
