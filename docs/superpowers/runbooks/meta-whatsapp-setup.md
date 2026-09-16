@@ -252,76 +252,105 @@ negocios que se conecten. Cada cliente nunca crea su propia App ni pasa por
 Meta Developers — solo hace login con SU cuenta de Facebook dentro del popup
 que abre TU App.
 
+**Nota sobre el dashboard**: Meta cambió su App Dashboard a un formato
+organizado por "casos de uso" en vez del clásico con "Agregar productos".
+Si tu App fue creada con el caso de uso de WhatsApp, ninguna de las
+instrucciones de "Agregar productos" clásicas aplica — todo lo de abajo está
+verificado contra este dashboard nuevo.
+
 ## 1. NEXT_PUBLIC_META_APP_ID
 
-Es el más simple de los dos: App Dashboard → **Configuración → Básica** →
-ahí mismo, junto al App Secret, está el **App ID** (un número, no es
-secreto — por eso puede ir en una variable `NEXT_PUBLIC_`, visible en el
-navegador).
+El más simple: App Dashboard → **Configuración → Básica** → ahí mismo, junto
+al App Secret, está el **App ID** (un número, no es secreto — por eso puede
+ir en una variable `NEXT_PUBLIC_`, visible en el navegador).
 
 ## 2. NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID
 
-Este requiere armar una "Configuración de Facebook Login for Business":
+En el dashboard nuevo, esto vive **dentro del flujo de "Incorporación de
+proveedores de tecnología"**, no como un producto separado:
 
-1. App Dashboard → en la página principal, buscá la tarjeta **"Facebook
-   Login for Business"** → "Configurar" (si no está agregado a la App,
-   agregalo como producto primero, igual que hiciste con WhatsApp)
-2. Menú izquierdo de ese producto → **"Configuraciones"**
-3. **"Crear configuración"** → ponele un nombre (ej. "FactorIA - Onboarding
-   clientes")
-4. En **"Login variation"**, elegí específicamente **"WhatsApp Embedded
-   Signup"** (no una configuración genérica)
-5. En **"Assets"**, seleccioná **"WhatsApp accounts"** — no marques nada que
-   no vayas a usar (catálogos, etc.), porque eso le agrega pasos de más al
-   cliente en el popup y aumenta el abandono
-6. En **"Permissions"**, marcá `whatsapp_business_management` y
-   `whatsapp_business_messaging`
-7. **"Crear"** → copiá el **Configuration ID** que te muestra (un número
-   largo) — ese es el valor de `NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID`
-8. Andá a **"Configuraciones" → "Ajustes"** (Settings) de ese mismo producto
-   Facebook Login → agregá tu dominio real de producción en los campos de
-   OAuth/JavaScript SDK (mientras estás en local con ngrok, agregá también
-   la URL de ngrok ahí)
+1. Menú lateral de íconos → ícono de **lápiz** ✏️ ("Casos de uso")
+2. En la tarjeta **"Conecta con los clientes a través de WhatsApp"** → botón
+   **"Personalizar"**
+3. Ahí vas a ver, bajo "Amplía tu empresa", la tarjeta **"Hazte proveedor de
+   tecnología"** → botón **"Comenzar integración"**
+4. Se abre un modal: **"Incorpora clientes desde tu sitio web"** es
+   literalmente el Embedded Signup → **"Continuar"**
+5. Elegí **"Independent Tech Provider"** (ya viene seleccionado por
+   default — es la opción correcta si estás armando tu propia plataforma,
+   sin depender de un Solution Partner de Meta) → **"Iniciar incorporación"**
+6. Esto te lleva a una página nueva con 2 secciones grandes ("1. Verificación
+   de la empresa" y "2. Revisión de la aplicación") — **no completes esto
+   todavía**, primero conseguí el Config ID:
+7. Menú izquierdo → **"Creador de registro insertado"**
+8. Bajá hasta la tarjeta **"Configuración de la aplicación"** → dentro,
+   **"Inicio de sesión con Facebook para configuraciones empresariales"** →
+   botón **"Crear configuración"**
+9. Modal simple: solo pide un nombre (ej. "FactorIA - Onboarding clientes")
+   — el modal mismo confirma que va a pedir los permisos
+   `whatsapp_business_management` y `whatsapp_business_messaging`, y que
+   genera un token que nunca vence. Click **"Crear"**
+10. Te muestra el **Configuration ID** (un número largo, no es secreto) —
+    ese es el valor de `NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID`
+
+En esa misma página de "Creador de registro insertado" también vas a
+encontrar, más abajo, **"Administrar dominios"** — ahí es donde agregás tu
+dominio de producción (y la URL de ngrok mientras desarrollás localmente) a
+la lista de autorizados para el SDK de JavaScript.
 
 ## 3. Probar antes de someterlo a revisión
 
-Según la documentación de Meta, el flujo de Embedded Signup funciona con
-**Standard Access para la mayoría de los casos de uso** — es decir, podés
-probarlo vos mismo (como admin/developer de tu propia App) **sin esperar la
-aprobación de App Review**. Lo que SÍ requiere App Review es poder
-onboardear clientes reales que no sean developers/admins de tu App.
+El flujo de Embedded Signup funciona con **Standard Access para la mayoría
+de los casos de uso** — es decir, podés probarlo vos mismo (como
+admin/developer de tu propia App) **sin esperar la aprobación de App
+Review ni la Verificación de la Empresa**. Ambas cosas solo hacen falta
+para que un cliente externo (que no sea admin/developer de tu App) pueda
+completar el flujo.
 
-## 4. App Review — cuándo y cómo pedirlo
+## 4. Verificación de la Empresa — la parte más lenta, y con una salida para
+   emprendedores sin sociedad constituida
 
-Recién hace falta cuando quieras que **cualquier cliente externo** (no vos)
-pueda completar el flujo:
+Volviendo a la página de "Incorporación de proveedores de tecnología"
+(sección "1. Verificación de la empresa" → "Iniciar verificación"):
 
-1. App Dashboard → **"Revisión de la app" (App Review) → "Permisos y
-   funciones"**
-2. Buscá `whatsapp_business_management` → **"Solicitar acceso avanzado"**
-3. Repetí con `whatsapp_business_messaging`
-4. Por cada uno, Meta pide **dos cosas obligatorias**: una descripción
-   escrita de cómo tu App usa ese permiso, y una **grabación de pantalla**
-   mostrando el uso real (ej. grabar el popup de Embedded Signup completo,
-   o el envío de un mensaje real vía tu App)
-5. **"Revisión de la app" → "Solicitudes"** → completá el checklist
-   (verificación de la App, configuración, preguntas de manejo de datos) →
-   **"Enviar para revisión"**
-6. El tiempo de respuesta típico es de **~24 horas**, aunque puede variar
+- Meta acepta el tipo de negocio **"Sole Proprietorship"** (negocio
+  unipersonal) — **no hace falta una sociedad constituida**
+- En Argentina, el camino más simple y gratuito para un emprendedor solo es
+  inscribirse como **monotributista** en ARCA (ex-AFIP): 100% online con
+  Clave Fiscal, pide DNI + selfie + comprobante de domicilio. Una vez
+  inscripto, se descarga al instante la **Constancia de Inscripción** (con
+  tu CUIT y nombre legal) — ese documento es el que Meta pide como prueba de
+  registro
+- Esto puede demorar de minutos a **varios días** en confirmarse del lado de
+  Meta — no es instantáneo. No bloquea seguir desarrollando mientras se
+  resuelve (ver punto 3)
+- No soy contador ni abogado — para dudas específicas de tu situación
+  (categoría de monotributo, actividad a declarar), una consulta rápida con
+  un gestor/contador es barata y común en Argentina
 
-## 5. Antes de pedir App Review, probablemente necesites Business Verification
+## 5. App Review — cuándo y cómo pedirlo
 
-Como vimos en la Parte B, sin **Business Verification** de tu Business
-Portfolio el límite de onboarding es de solo 10 clientes nuevos cada 7 días
-— con la verificación completa, sube a 200/semana. Se pide desde
-**Configuración del negocio → Seguridad del centro → Verificación del
-negocio**, y generalmente pide documentación legal de tu empresa (CUIT/CUIL,
-constancia de inscripción, etc. según tu país).
+Misma página, sección **"2. Revisión de la aplicación"**, con 3 pasos:
+
+1. **"Review your app settings"** — prepara la App para el envío
+2. **"Record video documentation"** — grabación de pantalla mostrando el uso
+   real (ej. el popup de Embedded Signup completo, o el envío de un mensaje
+   real vía tu App)
+3. **"Submit documentation for Review"** — envío final, tiempo de respuesta
+   típico de **~24 horas**, aunque puede variar
+
+Sin Business Verification completa, el límite de onboarding es de solo 10
+clientes nuevos cada 7 días — con la verificación aprobada, sube a
+200/semana.
 
 ## 6. Orden recomendado para no perder tiempo
 
-1. Probá el flujo completo vos mismo primero (Standard Access, sin esperar nada)
-2. En paralelo, iniciá Business Verification (puede tardar días)
-3. Una vez que el flujo funciona bien en tus pruebas, recién ahí sometelo a
-   App Review
+1. Probá el flujo completo vos mismo primero (Standard Access, sin esperar
+   nada — podés hacer esto HOY)
+2. En paralelo, inscribite como monotributista si todavía no tenés CUIT, e
+   iniciá la Verificación de la Empresa con la Constancia de Inscripción
+   (puede tardar días en confirmarse)
+3. Una vez que el flujo funciona bien en tus pruebas Y la verificación está
+   aprobada, recién ahí sometelo a App Review
 4. Cuando tengas ambas cosas aprobadas, cambiá la App a modo **Live**
+
