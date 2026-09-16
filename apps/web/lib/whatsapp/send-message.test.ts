@@ -76,4 +76,25 @@ describe('sendWhatsAppMessage', () => {
 
     expect(result.error).toContain('Recipient phone number not in allowed list');
   });
+
+  it('devuelve el wamid (ID del mensaje) cuando el envío es exitoso', async () => {
+    (fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        messaging_product: 'whatsapp',
+        contacts: [{ input: '5491100000000', wa_id: '5491100000000' }],
+        messages: [{ id: 'wamid.HBgLNTQ5MTEwMDAwMDAwFQIAERgSMTIzNDU2Nzg5MEFCQ0RFMTIA' }],
+      }),
+    });
+
+    const result = await sendWhatsAppMessage({
+      phoneNumberId: '123456',
+      accessToken: 'token-abc',
+      to: '5491100000000',
+      text: 'Hola',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.wamid).toBe('wamid.HBgLNTQ5MTEwMDAwMDAwFQIAERgSMTIzNDU2Nzg5MEFCQ0RFMTIA');
+  });
 });

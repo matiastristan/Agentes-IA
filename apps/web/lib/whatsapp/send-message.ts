@@ -8,6 +8,7 @@ interface SendMessageParams {
 interface SendMessageResult {
   success: boolean;
   error?: string;
+  wamid?: string;
 }
 
 export async function sendWhatsAppMessage({
@@ -44,7 +45,8 @@ export async function sendWhatsAppMessage({
       };
     }
 
-    return { success: true };
+    const json = await response.json();
+    return { success: true, wamid: json?.messages?.[0]?.id };
   } catch {
     return { success: false, error: 'Error de red al contactar la Graph API de Meta' };
   }
