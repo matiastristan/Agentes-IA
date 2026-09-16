@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as XLSX from 'xlsx';
 import { createClient } from '@/lib/supabase/server';
-import { mapExcelRowToProducto } from '@/lib/ventas/map-excel-row';
 import type { Json } from '@/lib/supabase/types_db';
+
+interface ProductoImportado {
+  nombre: string;
+  precio?: number;
+  stock: number;
+  atributos: Record<string, unknown>;
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -14,38 +19,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get('file') as File | null;
+  const { productos } = (await request.json()) as { productos: ProductoImportado[] };
 
-  if (!file) {
-    return NextResponse.json({ error: 'No se recibió ningún archivo' }, { status: 400 });
+  if (!Array.isArray(productos) || productos.length === 0) {
+    return NextResponse.json({ error: 'No hay productos para importar' }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
-  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet);
+  const filas = productos.map((p) => ({
+    tenant_id: user.id,
+    nombre: p.nombre,
+    precio: p.precio ?? null,
+    stock: p.stock,
+    atributos: p.atributos as Json,
+  }));
 
-  const productos = rows.map((row) => {
-    const mapeado = mapExcelRowToProducto(row);
-    return {
-      tenant_id: user.id,
-      nombre: mapeado.nombre,
-      precio: mapeado.precio ?? null,
-      stock: mapeado.stock,
-      atributos: mapeado.atributos as Json,
-    };
-  });
-
-  if (productos.length === 0) {
-    return NextResponse.json({ error: 'El Excel no tiene filas' }, { status: 400 });
-  }
-
-  const { error } = await supabase.from('productos').insert(productos);
+  const { error } = await supabase.from('productos').insert(filas);
 
   if (error) {
     return NextResponse.json({ error: 'No se pudo importar el catálogo' }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, cantidad: productos.length });
+  return NextResponse.json({ ok: true, cantidad: filas.length });
 }
