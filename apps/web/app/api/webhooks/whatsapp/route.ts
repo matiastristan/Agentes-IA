@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
       findOrCreateConversation: async (tenantId, phoneFrom) => {
         const { data: existing } = await supabase
           .from('conversations')
-          .select('id')
+          .select('id, bot_desactivado')
           .eq('tenant_id', tenantId)
           .eq('phone_from', phoneFrom)
           .eq('estado', 'activa')
@@ -87,10 +87,20 @@ export async function POST(request: NextRequest) {
         const { data: created } = await supabase
           .from('conversations')
           .insert({ tenant_id: tenantId, phone_from: phoneFrom })
-          .select('id')
+          .select('id, bot_desactivado')
           .single();
 
         return created!;
+      },
+      isClienteBloqueado: async (tenantId, phone) => {
+        const { data } = await supabase
+          .from('clientes')
+          .select('bloqueado')
+          .eq('tenant_id', tenantId)
+          .eq('phone', phone)
+          .single();
+
+        return data?.bloqueado ?? false;
       },
       loadRecentMessages: async (tenantId, phoneFrom) => {
         const { data: convs } = await supabase

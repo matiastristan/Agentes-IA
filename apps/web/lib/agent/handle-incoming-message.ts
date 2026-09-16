@@ -21,7 +21,11 @@ interface IncomingMessage {
 
 interface Deps {
   findNegocioByPhoneNumberId: (phoneNumberId: string) => Promise<NegocioLookup | null>;
-  findOrCreateConversation: (tenantId: string, phoneFrom: string) => Promise<{ id: string }>;
+  findOrCreateConversation: (
+    tenantId: string,
+    phoneFrom: string
+  ) => Promise<{ id: string; bot_desactivado?: boolean }>;
+  isClienteBloqueado: (tenantId: string, phone: string) => Promise<boolean>;
   loadRecentMessages: (
     tenantId: string,
     phoneFrom: string
@@ -118,6 +122,11 @@ export async function handleIncomingMessage(
     return { handled: false };
   }
 
+  const bloqueado = await deps.isClienteBloqueado(negocio.tenant_id, incoming.from);
+  if (bloqueado) {
+    return { handled: false };
+  }
+
   const conversation = await deps.findOrCreateConversation(negocio.tenant_id, incoming.from);
   const history = await deps.loadRecentMessages(negocio.tenant_id, incoming.from);
 
@@ -127,6 +136,10 @@ export async function handleIncomingMessage(
     role: 'user',
     content: incoming.text,
   });
+
+  if (conversation.bot_desactivado) {
+    return { handled: false };
+  }
 
   const systemPrompt = buildSystemPrompt(negocio);
   const tools = getToolsForTier(negocio.tier);

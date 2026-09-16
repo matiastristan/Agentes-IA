@@ -105,6 +105,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          bloqueado: boolean
           created_at: string
           fecha_nacimiento: string | null
           id: string
@@ -115,6 +116,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bloqueado?: boolean
           created_at?: string
           fecha_nacimiento?: string | null
           id?: string
@@ -125,6 +127,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bloqueado?: boolean
           created_at?: string
           fecha_nacimiento?: string | null
           id?: string
@@ -184,6 +187,7 @@ export type Database = {
       }
       conversations: {
         Row: {
+          bot_desactivado: boolean
           created_at: string
           customer_name: string | null
           estado: string
@@ -198,6 +202,7 @@ export type Database = {
           vendedor_asignado: string | null
         }
         Insert: {
+          bot_desactivado?: boolean
           created_at?: string
           customer_name?: string | null
           estado?: string
@@ -212,6 +217,7 @@ export type Database = {
           vendedor_asignado?: string | null
         }
         Update: {
+          bot_desactivado?: boolean
           created_at?: string
           customer_name?: string | null
           estado?: string

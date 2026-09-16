@@ -15,7 +15,8 @@ const NEGOCIO_A = {
 function makeDeps(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     findNegocioByPhoneNumberId: vi.fn().mockResolvedValue(NEGOCIO_A),
-    findOrCreateConversation: vi.fn().mockResolvedValue({ id: 'conv-1' }),
+    findOrCreateConversation: vi.fn().mockResolvedValue({ id: 'conv-1', bot_desactivado: false }),
+    isClienteBloqueado: vi.fn().mockResolvedValue(false),
     loadRecentMessages: vi.fn().mockResolvedValue([]),
     saveMessage: vi.fn().mockResolvedValue(undefined),
     callOpenRouter: vi.fn().mockResolvedValue({
@@ -178,5 +179,32 @@ describe('handleIncomingMessage', () => {
         statusError: 'Meta respondió 400: número inválido',
       })
     );
+  });
+
+  it('si el contacto está bloqueado, no se procesa nada (ni se guarda el mensaje)', async () => {
+    const deps = makeDeps({ isClienteBloqueado: vi.fn().mockResolvedValue(true) });
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(result.handled).toBe(false);
+    expect(deps.saveMessage).not.toHaveBeenCalled();
+    expect(deps.callOpenRouter).not.toHaveBeenCalled();
+  });
+
+  it('si el bot está desactivado en esa conversación puntual, se guarda el mensaje del usuario pero no se llama al agente ni se responde', async () => {
+    const deps = makeDeps({
+      findOrCreateConversation: vi.fn().mockResolvedValue({ id: 'conv-1', bot_desactivado: true }),
+    });
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+    expect(deps.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ role: 'user', content: 'Hola' })
+    );
+    expect(deps.callOpenRouter).not.toHaveBeenCalled();
+    expect(deps.sendWhatsAppMessage).not.toHaveBeenCalled();
+    expect(result.handled).toBe(false);
   });
 });
