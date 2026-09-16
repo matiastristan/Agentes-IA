@@ -31,7 +31,17 @@ export async function sendWhatsAppMessage({
     });
 
     if (!response.ok) {
-      return { success: false, error: `Meta respondió ${response.status}` };
+      let detail = '';
+      try {
+        const errorBody = await response.json();
+        detail = errorBody?.error?.message ?? '';
+      } catch {
+        // el body no era JSON parseable, seguimos solo con el status
+      }
+      return {
+        success: false,
+        error: detail ? `Meta respondió ${response.status}: ${detail}` : `Meta respondió ${response.status}`,
+      };
     }
 
     return { success: true };

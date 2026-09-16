@@ -53,4 +53,27 @@ describe('sendWhatsAppMessage', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('el error incluye el mensaje real que devuelve Meta, no solo el status code', async () => {
+    (fetch as any).mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        error: {
+          message: "Recipient phone number not in allowed list",
+          type: "OAuthException",
+          code: 131030,
+        },
+      }),
+    });
+
+    const result = await sendWhatsAppMessage({
+      phoneNumberId: '123456',
+      accessToken: 'token-abc',
+      to: '5491100000000',
+      text: 'Hola',
+    });
+
+    expect(result.error).toContain('Recipient phone number not in allowed list');
+  });
 });
