@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Panel Admin</CardTitle>
+          <CardTitle>FactorIA — Panel Admin</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

@@ -24,7 +24,7 @@ export async function sendLeadAlertEmail({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'AgentesIA <alertas@agentesia.app>',
+        from: 'FactorIA <alertas@factoria.app>',
         to: [to],
         subject: `🔥 Lead caliente en ${nombreNegocio}`,
         html: `

@@ -3,7 +3,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agente IA — Panel del negocio",
+  title: "FactorIA — Tu Fábrica de Agentes",
   description: "Panel de control multi-tenant para el Agente IA de WhatsApp",
 };
 

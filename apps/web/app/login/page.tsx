@@ -49,7 +49,8 @@ export default function LoginPage() {
           className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-white/10 blur-3xl"
         />
         <div className="relative z-10">
-          <span className="text-lg font-semibold tracking-tight">AgentesIA</span>
+          <span className="text-lg font-semibold tracking-tight">FactorIA</span>
+          <span className="block text-xs text-primary-foreground/70">Tu Fábrica de Agentes</span>
         </div>
         <div className="relative z-10 max-w-md">
           <h1 className="text-3xl font-semibold leading-tight mb-4">
@@ -61,7 +62,7 @@ export default function LoginPage() {
           </p>
         </div>
         <div className="relative z-10 text-sm text-primary-foreground/60">
-          © {new Date().getFullYear()} AgentesIA
+          © {new Date().getFullYear()} FactorIA
         </div>
       </div>
 

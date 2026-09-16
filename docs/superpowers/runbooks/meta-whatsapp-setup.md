@@ -21,7 +21,7 @@ durante un tiempo indeterminado. Logueate con tu cuenta personal de siempre.
 ## 1. Crear la App de Meta
 
 1. https://developers.facebook.com → "Mis Apps" → "Crear App" → tipo **Business**
-2. Business Portfolio: nombre de negocio/proyecto (ej. "AgentesIA"), **nunca**
+2. Business Portfolio: nombre de negocio/proyecto (ej. "FactorIA"), **nunca**
    tu nombre personal — el campo lo rechaza a propósito.
 
 ## 2. Agregar WhatsApp y conseguir el número de prueba
@@ -246,7 +246,7 @@ Parte A, lo cual no escala.
 # PARTE C — Conseguir las credenciales para Embedded Signup
 
 **Importante primero**: `NEXT_PUBLIC_META_APP_ID` y
-`NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID` son **tuyas, de Matías/AgentesIA
+`NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID` son **tuyas, de Matías/FactorIA
 — no de cada cliente**. Una sola App de Meta (la tuya) sirve para todos los
 negocios que se conecten. Cada cliente nunca crea su propia App ni pasa por
 Meta Developers — solo hace login con SU cuenta de Facebook dentro del popup
@@ -267,7 +267,7 @@ Este requiere armar una "Configuración de Facebook Login for Business":
    Login for Business"** → "Configurar" (si no está agregado a la App,
    agregalo como producto primero, igual que hiciste con WhatsApp)
 2. Menú izquierdo de ese producto → **"Configuraciones"**
-3. **"Crear configuración"** → ponele un nombre (ej. "AgentesIA - Onboarding
+3. **"Crear configuración"** → ponele un nombre (ej. "FactorIA - Onboarding
    clientes")
 4. En **"Login variation"**, elegí específicamente **"WhatsApp Embedded
    Signup"** (no una configuración genérica)
