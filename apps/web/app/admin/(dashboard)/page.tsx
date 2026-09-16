@@ -20,22 +20,31 @@ export default async function AdminDashboardPage() {
     .eq('estado_cuenta', 'activo');
 
   return (
-    <main className="min-h-screen bg-background p-8">
-      <h1 className="text-2xl font-semibold text-text-primary mb-6">Panel Admin</h1>
-      <div className="flex gap-3 mb-6">
-        <a href="/admin/negocios" className="text-sm text-primary font-medium">
-          Ver negocios
-        </a>
-        <a href="/admin/chat" className="text-sm text-primary font-medium">
-          Hablar con tu agente
-        </a>
-      </div>
+    <main className="flex-1 bg-background p-6 md:p-8">
+      <h1 className="text-2xl font-semibold text-text-primary mb-6 animate-fade-slide-in">
+        Panel Admin
+      </h1>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <KPICard label="Negocios activos" value={totalActivos ?? 0} />
-        <KPICard label="Por vencer (7 días)" value={porVencer?.length ?? 0} />
+        {[
+          { label: 'Negocios activos', value: totalActivos ?? 0 },
+          { label: 'Por vencer (7 días)', value: porVencer?.length ?? 0 },
+        ].map((kpi, i) => (
+          <div
+            key={kpi.label}
+            className="animate-fade-slide-in"
+            style={{ animationDelay: `${i * 60}ms` }}
+          >
+            <KPICard label={kpi.label} value={kpi.value} />
+          </div>
+        ))}
       </div>
+
       <h2 className="text-lg font-medium text-text-primary mb-3">Vencimientos próximos</h2>
       <div className="flex flex-col gap-2">
+        {(porVencer ?? []).length === 0 && (
+          <p className="text-sm text-text-muted">Ningún negocio vence en los próximos 7 días.</p>
+        )}
         {(porVencer ?? []).map((n, i) => (
           <Card key={i}>
             <CardHeader>

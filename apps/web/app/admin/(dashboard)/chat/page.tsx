@@ -36,7 +36,7 @@ export default function AdminChatPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background p-8 flex flex-col">
+    <main className="flex-1 bg-background p-6 md:p-8 flex flex-col">
       <h1 className="text-2xl font-semibold text-text-primary mb-6">Tu agente</h1>
 
       <Card className="flex-1 mb-4 overflow-y-auto">
