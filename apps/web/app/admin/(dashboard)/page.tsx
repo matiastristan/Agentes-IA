@@ -8,16 +8,14 @@ export default async function AdminDashboardPage() {
   const en7dias = new Date();
   en7dias.setDate(en7dias.getDate() + 7);
 
-  const { data: porVencer } = await supabase
-    .from('negocio')
-    .select('nombre, plan_fecha_vencimiento, estado_cuenta')
-    .lte('plan_fecha_vencimiento', en7dias.toISOString().slice(0, 10))
-    .eq('estado_cuenta', 'activo');
-
-  const { count: totalActivos } = await supabase
-    .from('negocio')
-    .select('*', { count: 'exact', head: true })
-    .eq('estado_cuenta', 'activo');
+  const [{ data: porVencer }, { count: totalActivos }] = await Promise.all([
+    supabase
+      .from('negocio')
+      .select('nombre, plan_fecha_vencimiento, estado_cuenta')
+      .lte('plan_fecha_vencimiento', en7dias.toISOString().slice(0, 10))
+      .eq('estado_cuenta', 'activo'),
+    supabase.from('negocio').select('*', { count: 'exact', head: true }).eq('estado_cuenta', 'activo'),
+  ]);
 
   return (
     <main className="flex-1 bg-background p-6 md:p-8">

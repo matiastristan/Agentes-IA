@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { mapExcelRowToProducto } from '@/lib/ventas/map-excel-row';
@@ -22,9 +21,13 @@ export function ExcelUploader() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // xlsx pesa ~7MB — se carga solo cuando el usuario realmente sube un
+    // archivo, no en el bundle inicial de la página del catálogo.
+    const XLSX = await import('xlsx');
 
     const reader = new FileReader();
     reader.onload = (event) => {

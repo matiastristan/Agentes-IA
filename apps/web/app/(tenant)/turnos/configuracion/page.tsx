@@ -8,16 +8,10 @@ export default async function ConfiguracionTurnosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: negocio } = await supabase
-    .from('negocio')
-    .select('plantillas_meta_habilitadas')
-    .eq('tenant_id', user!.id)
-    .single();
-
-  const { data: reglas } = await supabase
-    .from('recordatorios_config')
-    .select('*')
-    .eq('tenant_id', user!.id);
+  const [{ data: negocio }, { data: reglas }] = await Promise.all([
+    supabase.from('negocio').select('plantillas_meta_habilitadas').eq('tenant_id', user!.id).single(),
+    supabase.from('recordatorios_config').select('*').eq('tenant_id', user!.id),
+  ]);
 
   const lista = reglas ?? [];
 

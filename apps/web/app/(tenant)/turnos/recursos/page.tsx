@@ -8,22 +8,14 @@ export default async function RecursosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: negocio } = await supabase
-    .from('negocio')
-    .select('tier')
-    .eq('tenant_id', user!.id)
-    .single();
-
-  const { data: overrides } = await supabase
-    .from('negocio_feature_overrides')
-    .select('feature_key, habilitado')
-    .eq('tenant_id', user!.id);
-
-  const { data: recursos } = await supabase
-    .from('recursos')
-    .select('*')
-    .eq('tenant_id', user!.id)
-    .eq('activo', true);
+  const [{ data: negocio }, { data: overrides }, { data: recursos }] = await Promise.all([
+    supabase.from('negocio').select('tier').eq('tenant_id', user!.id).single(),
+    supabase
+      .from('negocio_feature_overrides')
+      .select('feature_key, habilitado')
+      .eq('tenant_id', user!.id),
+    supabase.from('recursos').select('*').eq('tenant_id', user!.id).eq('activo', true),
+  ]);
 
   const lista = recursos ?? [];
   const puedeAgregarMas =

@@ -9,21 +9,19 @@ export default async function TurnosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: recursos } = await supabase
-    .from('recursos')
-    .select('*')
-    .eq('tenant_id', user!.id)
-    .eq('activo', true);
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const [{ data: recursos }, { data: citas }] = await Promise.all([
+    supabase.from('recursos').select('*').eq('tenant_id', user!.id).eq('activo', true),
+    supabase
+      .from('citas')
+      .select('*')
+      .eq('tenant_id', user!.id)
+      .eq('fecha', hoy)
+      .order('hora', { ascending: true }),
+  ]);
 
   const vista = pickCalendarView(recursos?.length ?? 0);
-
-  const hoy = new Date().toISOString().slice(0, 10);
-  const { data: citas } = await supabase
-    .from('citas')
-    .select('*')
-    .eq('tenant_id', user!.id)
-    .eq('fecha', hoy)
-    .order('hora', { ascending: true });
 
   const lista = citas ?? [];
 

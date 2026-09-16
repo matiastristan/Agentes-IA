@@ -8,18 +8,15 @@ export default async function ConfiguracionAlertasPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: negocio } = await supabase
-    .from('negocio')
-    .select('email_alertas')
-    .eq('tenant_id', user!.id)
-    .single();
-
-  const { data: override } = await supabase
-    .from('negocio_feature_overrides')
-    .select('habilitado')
-    .eq('tenant_id', user!.id)
-    .eq('feature_key', 'alertas_lead_caliente')
-    .single();
+  const [{ data: negocio }, { data: override }] = await Promise.all([
+    supabase.from('negocio').select('email_alertas').eq('tenant_id', user!.id).single(),
+    supabase
+      .from('negocio_feature_overrides')
+      .select('habilitado')
+      .eq('tenant_id', user!.id)
+      .eq('feature_key', 'alertas_lead_caliente')
+      .single(),
+  ]);
 
   const habilitada = override?.habilitado ?? false;
 

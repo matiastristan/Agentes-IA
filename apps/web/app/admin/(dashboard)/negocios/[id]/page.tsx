@@ -10,16 +10,15 @@ export default async function AdminNegocioDetallePage({
   const { id } = await params;
   const supabase = createServiceClient();
 
-  const { data: negocio } = await supabase.from('negocio').select('*').eq('tenant_id', id).single();
-  const { data: overrides } = await supabase
-    .from('negocio_feature_overrides')
-    .select('*')
-    .eq('tenant_id', id);
-  const { data: facturacion } = await supabase
-    .from('facturacion_negocio')
-    .select('*')
-    .eq('tenant_id', id)
-    .order('fecha', { ascending: false });
+  const [{ data: negocio }, { data: overrides }, { data: facturacion }] = await Promise.all([
+    supabase.from('negocio').select('*').eq('tenant_id', id).single(),
+    supabase.from('negocio_feature_overrides').select('*').eq('tenant_id', id),
+    supabase
+      .from('facturacion_negocio')
+      .select('*')
+      .eq('tenant_id', id)
+      .order('fecha', { ascending: false }),
+  ]);
 
   const overridesMap = Object.fromEntries(
     (overrides ?? []).map((o) => [o.feature_key, o.habilitado])

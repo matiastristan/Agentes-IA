@@ -8,17 +8,10 @@ export default async function CombosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: productos } = await supabase
-    .from('productos')
-    .select('id, nombre')
-    .eq('tenant_id', user!.id)
-    .eq('activo', true);
-
-  const { data: combos } = await supabase
-    .from('combos')
-    .select('*')
-    .eq('tenant_id', user!.id)
-    .eq('activo', true);
+  const [{ data: productos }, { data: combos }] = await Promise.all([
+    supabase.from('productos').select('id, nombre').eq('tenant_id', user!.id).eq('activo', true),
+    supabase.from('combos').select('*').eq('tenant_id', user!.id).eq('activo', true),
+  ]);
 
   const lista = combos ?? [];
 
