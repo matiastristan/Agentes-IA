@@ -154,6 +154,31 @@ Ver spec completo en `docs/superpowers/specs/2026-09-15-panel-admin-d1-design.md
 
 ⏳ Backlog abierto: campañas masivas + resumen IA de historial largo, sincronización con Google Calendar, sistema completo de cobro/logística para B, BYOK.
 
+## Desarrollo post-debugging: 4 mejoras de arquitectura ✅
+
+Tras las pruebas end-to-end reales (ver sección abajo), se implementaron 4
+mejoras identificadas a partir de una arquitectura de referencia que trajo
+el usuario:
+
+1. **Bot desactivable por conversación + bloqueo de contacto**:
+   `conversations.bot_desactivado`, `clientes.bloqueado`, con enforcement
+   real en `handleIncomingMessage` (no solo a nivel UI)
+2. **Calificación automática de lead + alerta por email**: `categorizeTemperatura`
+   corre sola después de 3+ mensajes del usuario (sin depender de que el
+   modelo decida usar una tool), dispara `sendLeadAlertEmail` (Resend) si
+   sale "caliente" — **activable por negocio individual** desde el panel
+   admin (`alertas_lead_caliente` + campo `email_alertas`), como upsell
+3. **Embedded Signup**: estructura completa (botón, endpoint de intercambio
+   de `code`, página `/configuracion/whatsapp`) para que un cliente real
+   conecte su propio WhatsApp sin pasar por nada de lo que se hizo a mano en
+   esta sesión — **requiere App Review de Meta aprobado para funcionar en
+   vivo**, documentado en la Parte B del runbook
+4. **Preview de Excel antes de importar + edición inline del catálogo**:
+   el Excel se parsea en el navegador y se muestra una tabla de confirmación
+   antes de tocar la base; precio/stock son editables directo en la tabla
+
+**179/179 tests pasando.**
+
 ## Pruebas end-to-end reales — en curso
 
 Empezamos a probar la app real (signup, login, CRM) en la máquina del usuario. Hallazgos:
