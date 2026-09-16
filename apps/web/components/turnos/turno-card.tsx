@@ -20,7 +20,14 @@ export function TurnoCard({ estado, hora, clienteNombre }: TurnoCardProps) {
   const config = estadoConfig[estado];
 
   return (
-    <Card data-testid="turno-card" className={cn('p-3 flex flex-col gap-1', config.bg)}>
+    <Card
+      data-testid="turno-card"
+      className={cn(
+        'p-3 flex flex-col gap-1',
+        'transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md',
+        config.bg
+      )}
+    >
       <span className="text-xs text-text-secondary">{hora}</span>
       {clienteNombre && <span className="text-sm font-medium">{clienteNombre}</span>}
       {config.label && (
