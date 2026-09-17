@@ -36,7 +36,6 @@ export function Sidebar({
   const items: NavItem[] = [
     { href: '/dashboard', label: 'Inicio', icon: '🏠' },
     ...verticalItems,
-    { href: '/configuracion/whatsapp', label: 'WhatsApp', icon: '💬' },
     { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
   ];
 
