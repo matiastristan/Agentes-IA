@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,21 +15,19 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
   const verticalItems: NavItem[] =
     tipoCrm === 'turnos'
       ? [
-          { href: '/turnos', label: 'Calendario', icon: '📅' },
-          { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
-          { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
-          { href: '/turnos/configuracion', label: 'Recordatorios', icon: '⏰' },
+          { href: '/turnos', label: 'Calendario', icon: 'ðŸ“…' },
+          { href: '/turnos/servicios', label: 'Servicios', icon: 'ðŸ§¾' },
+          { href: '/turnos/recursos', label: 'Recursos', icon: 'ðŸ§©' },
+          { href: '/turnos/configuracion', label: 'Recordatorios', icon: 'â°' },
         ]
       : [
-          { href: '/ventas/catalogo', label: 'Catálogo', icon: '📦' },
-          { href: '/ventas/combos', label: 'Combos', icon: '🎁' },
+          { href: '/ventas/catalogo', label: 'CatÃ¡logo', icon: 'ðŸ“¦' },
+          { href: '/ventas/combos', label: 'Combos', icon: 'ðŸŽ' },
         ];
 
   const items: NavItem[] = [
-    { href: '/dashboard', label: 'Inicio', icon: '🏠' },
-    ...verticalItems,
-    { href: '/configuracion/whatsapp', label: 'WhatsApp', icon: '💬' },
-    { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
+    { href: '/dashboard', label: 'Inicio', icon: 'ðŸ ' },
+    ...verticalItems,    { href: '/configuracion/alertas', label: 'Alertas', icon: 'ðŸ”¥' },
   ];
 
   return (
@@ -54,3 +52,4 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
     </nav>
   );
 }
+

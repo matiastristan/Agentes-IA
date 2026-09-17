@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -23,21 +23,19 @@ export function Sidebar({
   const verticalItems: NavItem[] =
     tipoCrm === 'turnos'
       ? [
-          { href: '/turnos', label: 'Calendario', icon: '📅' },
-          { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
-          { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
-          { href: '/turnos/configuracion', label: 'Recordatorios', icon: '⏰' },
+          { href: '/turnos', label: 'Calendario', icon: 'ðŸ“…' },
+          { href: '/turnos/servicios', label: 'Servicios', icon: 'ðŸ§¾' },
+          { href: '/turnos/recursos', label: 'Recursos', icon: 'ðŸ§©' },
+          { href: '/turnos/configuracion', label: 'Recordatorios', icon: 'â°' },
         ]
       : [
-          { href: '/ventas/catalogo', label: 'Catálogo', icon: '📦' },
-          { href: '/ventas/combos', label: 'Combos', icon: '🎁' },
+          { href: '/ventas/catalogo', label: 'CatÃ¡logo', icon: 'ðŸ“¦' },
+          { href: '/ventas/combos', label: 'Combos', icon: 'ðŸŽ' },
         ];
 
   const items: NavItem[] = [
-    { href: '/dashboard', label: 'Inicio', icon: '🏠' },
-    ...verticalItems,
-    { href: '/configuracion/whatsapp', label: 'WhatsApp', icon: '💬' },
-    { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
+    { href: '/dashboard', label: 'Inicio', icon: 'ðŸ ' },
+    ...verticalItems,    { href: '/configuracion/alertas', label: 'Alertas', icon: 'ðŸ”¥' },
   ];
 
   async function handleLogout() {
@@ -85,10 +83,11 @@ export function Sidebar({
             'transition-[background-color,color] duration-150 ease-out'
           )}
         >
-          <span aria-hidden>🚪</span>
-          Cerrar sesión
+          <span aria-hidden>ðŸšª</span>
+          Cerrar sesiÃ³n
         </button>
       </div>
     </aside>
   );
 }
+
