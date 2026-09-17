@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -23,19 +23,20 @@ export function Sidebar({
   const verticalItems: NavItem[] =
     tipoCrm === 'turnos'
       ? [
-          { href: '/turnos', label: 'Calendario', icon: 'ðŸ“…' },
-          { href: '/turnos/servicios', label: 'Servicios', icon: 'ðŸ§¾' },
-          { href: '/turnos/recursos', label: 'Recursos', icon: 'ðŸ§©' },
-          { href: '/turnos/configuracion', label: 'Recordatorios', icon: 'â°' },
+          { href: '/turnos', label: 'Calendario', icon: '📅' },
+          { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
+          { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
+          { href: '/turnos/configuracion', label: 'Recordatorios', icon: '⏰' },
         ]
       : [
-          { href: '/ventas/catalogo', label: 'CatÃ¡logo', icon: 'ðŸ“¦' },
-          { href: '/ventas/combos', label: 'Combos', icon: 'ðŸŽ' },
+          { href: '/ventas/catalogo', label: 'Catálogo', icon: '📦' },
+          { href: '/ventas/combos', label: 'Combos', icon: '🎁' },
         ];
 
   const items: NavItem[] = [
-    { href: '/dashboard', label: 'Inicio', icon: 'ðŸ ' },
-    ...verticalItems,    { href: '/configuracion/alertas', label: 'Alertas', icon: 'ðŸ”¥' },
+    { href: '/dashboard', label: 'Inicio', icon: '🏠' },
+    ...verticalItems,
+    { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
   ];
 
   async function handleLogout() {
@@ -83,11 +84,10 @@ export function Sidebar({
             'transition-[background-color,color] duration-150 ease-out'
           )}
         >
-          <span aria-hidden>ðŸšª</span>
-          Cerrar sesiÃ³n
+          <span aria-hidden>🚪</span>
+          Cerrar sesión
         </button>
       </div>
     </aside>
   );
 }
-
