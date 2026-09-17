@@ -21,9 +21,17 @@ export default async function AdminNegociosPage() {
 
   return (
     <main className="flex-1 bg-background p-6 md:p-8">
-      <h1 className="text-2xl font-semibold text-text-primary mb-6 animate-fade-slide-in">
-        Negocios
-      </h1>
+      <div className="flex items-center justify-between mb-6 animate-fade-slide-in">
+        <h1 className="text-2xl font-semibold text-text-primary">
+          Negocios
+        </h1>
+        <a
+          href="/admin/negocios/nuevo"
+          className="text-sm font-medium bg-primary text-primary-foreground rounded-md px-4 py-2 hover:opacity-90 transition-opacity"
+        >
+          + Nuevo negocio
+        </a>
+      </div>
 
       {lista.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center animate-fade-slide-in">
