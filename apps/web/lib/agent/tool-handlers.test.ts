@@ -52,6 +52,43 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     expect(payload.tenant_id).toBe(TENANT_A);
   });
 
+  it('registrar_cita usa ctx.phone (el teléfono real) como customer_id, no el nombre del cliente', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: '1' }, error: null });
+    await executeToolCall(
+      'registrar_cita',
+      { customer_name: 'Juan', fecha: '2026-10-01', hora: '10:00' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+    const insertCall = calls.find((c) => c.method === 'insert');
+    const payload = insertCall!.args[0] as { customer_id: string; customer_name: string };
+    expect(payload.customer_id).toBe('5491100000000');
+    expect(payload.customer_name).toBe('Juan');
+  });
+
+  it('registrar_cita guarda servicio_id cuando el modelo lo pasa', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: '1' }, error: null });
+    await executeToolCall(
+      'registrar_cita',
+      { customer_name: 'Juan', fecha: '2026-10-01', hora: '10:00', servicio_id: 'srv-123' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+    const insertCall = calls.find((c) => c.method === 'insert');
+    const payload = insertCall!.args[0] as { servicio_id: string | null };
+    expect(payload.servicio_id).toBe('srv-123');
+  });
+
+  it('registrar_cita guarda servicio_id como null si no se pasa (no rompe)', async () => {
+    const { client, calls } = createMockSupabase({ data: { id: '1' }, error: null });
+    await executeToolCall(
+      'registrar_cita',
+      { customer_name: 'Juan', fecha: '2026-10-01', hora: '10:00' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+    const insertCall = calls.find((c) => c.method === 'insert');
+    const payload = insertCall!.args[0] as { servicio_id: string | null };
+    expect(payload.servicio_id).toBeNull();
+  });
+
   it('procesar_pago es rechazado si el tier es base, incluso si por error se invoca', async () => {
     const { client } = createMockSupabase({ data: null, error: null });
     const result = await executeToolCall('procesar_pago', { monto: 5000 }, {

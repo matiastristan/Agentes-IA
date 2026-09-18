@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { NuevoServicioForm } from '@/components/turnos/nuevo-servicio-form';
+import { ServiciosTable } from '@/components/turnos/servicios-table';
 
 export default async function ServiciosPage() {
   const supabase = await createClient();
@@ -20,26 +21,17 @@ export default async function ServiciosPage() {
         Servicios
       </h1>
 
+      <div className="animate-fade-slide-in">
+        <NuevoServicioForm />
+      </div>
+
       {lista.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center animate-fade-slide-in">
           <p className="text-sm text-text-muted">Todavía no cargaste ningún servicio.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {lista.map((s, i) => (
-            <div key={s.id} className="animate-fade-slide-in" style={{ animationDelay: `${i * 40}ms` }}>
-              <Card className="transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md">
-                <CardHeader>
-                  <CardTitle>{s.nombre}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-text-secondary">
-                    {s.duracion_minutos} min · ${s.precio}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
+        <div className="overflow-x-auto animate-fade-slide-in">
+          <ServiciosTable servicios={lista} />
         </div>
       )}
     </main>

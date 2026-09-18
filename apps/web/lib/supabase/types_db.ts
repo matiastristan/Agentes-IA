@@ -12,6 +12,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      abonos: {
+        Row: {
+          activo: boolean
+          cliente_nombre: string
+          cliente_telefono: string | null
+          created_at: string
+          dia_semana: number
+          hora_fin: string
+          hora_inicio: string
+          id: string
+          precio: number
+          recurso_id: string
+          tenant_id: string
+        }
+        Insert: {
+          activo?: boolean
+          cliente_nombre: string
+          cliente_telefono?: string | null
+          created_at?: string
+          dia_semana: number
+          hora_fin: string
+          hora_inicio: string
+          id?: string
+          precio: number
+          recurso_id: string
+          tenant_id: string
+        }
+        Update: {
+          activo?: boolean
+          cliente_nombre?: string
+          cliente_telefono?: string | null
+          created_at?: string
+          dia_semana?: number
+          hora_fin?: string
+          hora_inicio?: string
+          id?: string
+          precio?: number
+          recurso_id?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      consumos_turno: {
+        Row: {
+          abono_id: string | null
+          cita_id: string | null
+          created_at: string
+          descripcion: string
+          fecha: string
+          id: string
+          precio: number
+          tenant_id: string
+        }
+        Insert: {
+          abono_id?: string | null
+          cita_id?: string | null
+          created_at?: string
+          descripcion: string
+          fecha: string
+          id?: string
+          precio: number
+          tenant_id: string
+        }
+        Update: {
+          abono_id?: string | null
+          cita_id?: string | null
+          created_at?: string
+          descripcion?: string
+          fecha?: string
+          id?: string
+          precio?: number
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       admins: {
         Row: {
           created_at: string
@@ -396,6 +471,7 @@ export type Database = {
           estado_cuenta: string
           horarios: Json
           id: string
+          instrucciones_adicionales: string | null
           logo_url: string | null
           meta_connection_status: string
           nombre: string
@@ -425,6 +501,7 @@ export type Database = {
           estado_cuenta?: string
           horarios?: Json
           id?: string
+          instrucciones_adicionales?: string | null
           logo_url?: string | null
           meta_connection_status?: string
           nombre: string
@@ -454,6 +531,7 @@ export type Database = {
           estado_cuenta?: string
           horarios?: Json
           id?: string
+          instrucciones_adicionales?: string | null
           logo_url?: string | null
           meta_connection_status?: string
           nombre?: string

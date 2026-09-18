@@ -28,6 +28,8 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
   const items: NavItem[] = [
     { href: '/dashboard', label: 'Inicio', icon: '🏠' },
     ...verticalItems,
+    { href: '/configuracion/settings', label: 'Ajustes', icon: '⚙️' },
+    { href: '/configuracion/test-chat', label: 'Probar agente', icon: '💬' },
     { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
   ];
 

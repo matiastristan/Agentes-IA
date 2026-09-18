@@ -14,6 +14,7 @@ interface NegocioLookup {
   access_token: string | null;
   estado_cuenta?: string;
   email_alertas?: string | null;
+  instruccionesAdicionales?: string | null;
 }
 
 interface IncomingMessage {

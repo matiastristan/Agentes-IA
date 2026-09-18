@@ -6,6 +6,7 @@ import { sendLeadAlertEmail } from '@/lib/notifications/send-lead-alert-email';
 import { callOpenRouter } from '@/lib/agent/openrouter-client';
 import { executeToolCall } from '@/lib/agent/tool-handlers';
 import { handleIncomingMessage } from '@/lib/agent/handle-incoming-message';
+import { buildCatalogoParaNegocio } from '@/lib/agent/build-catalogo-para-negocio';
 
 // Meta llama a GET una sola vez, al configurar el webhook, para confirmar que el
 // endpoint es tuyo. Ver: https://developers.facebook.com/docs/graph-api/webhooks/getting-started
@@ -72,7 +73,16 @@ export async function POST(request: NextRequest) {
     {
       findNegocioByPhoneNumberId: async (id) => {
         const { data } = await supabase.from('negocio').select('*').eq('phone_number_id', id).single();
-        return data as never;
+        if (!data) return null;
+
+        // negocio.catalogo es un campo vestigial que nunca se escribe —
+        // el catálogo real vive en `servicios` (turnos) o `productos` (ventas).
+        const catalogo = await buildCatalogoParaNegocio(
+          supabase,
+          data.tenant_id,
+          data.tipo_crm as 'ventas' | 'turnos'
+        );
+        return { ...data, catalogo, instruccionesAdicionales: data.instrucciones_adicionales } as never;
       },
       findOrCreateConversation: async (tenantId, phoneFrom) => {
         const { data: existing } = await supabase

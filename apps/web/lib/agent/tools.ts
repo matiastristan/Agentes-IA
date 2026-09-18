@@ -38,6 +38,10 @@ const registrar_cita: ToolDefinition = {
         customer_name: { type: 'string', description: 'Nombre del cliente' },
         fecha: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
         hora: { type: 'string', description: 'Hora en formato HH:MM' },
+        servicio_id: {
+          type: 'string',
+          description: 'El "id" del servicio elegido, tal como aparece en el catálogo. Opcional, pero pasalo siempre que sepas cuál servicio es.',
+        },
       },
       required: ['customer_name', 'fecha', 'hora'],
     },

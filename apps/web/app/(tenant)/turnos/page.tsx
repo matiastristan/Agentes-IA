@@ -1,59 +1,68 @@
 import { createClient } from '@/lib/supabase/server';
-import { pickCalendarView } from '@/lib/turnos/pick-calendar-view';
-import { mapCitaEstadoToTurnoCardEstado } from '@/lib/turnos/map-cita-estado';
-import { TurnoCard } from '@/components/turnos/turno-card';
+import { getDiaSemanaInfo } from '@/lib/turnos/get-dia-semana-info';
+import { CalendarioClient } from '@/components/turnos/calendario-client';
 
-export default async function TurnosPage() {
+export default async function TurnosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ fecha?: string; cancha?: string }>;
+}) {
+  const { fecha: fechaParam, cancha } = await searchParams;
+  const fecha = fechaParam ?? new Date().toISOString().slice(0, 10);
+  const { diaSemana, diaKey } = getDiaSemanaInfo(fecha);
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const hoy = new Date().toISOString().slice(0, 10);
-
-  const [{ data: recursos }, { data: citas }] = await Promise.all([
-    supabase.from('recursos').select('*').eq('tenant_id', user!.id).eq('activo', true),
+  const [{ data: negocio }, { data: recursos }, { data: citasRaw }, { data: abonos }] = await Promise.all([
+    supabase.from('negocio').select('horarios').eq('tenant_id', user!.id).single(),
+    supabase.from('recursos').select('id, nombre, subtipo').eq('tenant_id', user!.id).eq('activo', true),
     supabase
       .from('citas')
-      .select('*')
+      .select('id, recurso_id, hora, customer_name, customer_id, servicio:servicios(duracion_minutos, precio)')
       .eq('tenant_id', user!.id)
-      .eq('fecha', hoy)
-      .order('hora', { ascending: true }),
+      .eq('fecha', fecha)
+      .neq('estado', 'cancelada'),
+    supabase
+      .from('abonos')
+      .select('id, recurso_id, dia_semana, hora_inicio, hora_fin, cliente_nombre, cliente_telefono, precio')
+      .eq('tenant_id', user!.id)
+      .eq('activo', true),
   ]);
 
-  const vista = pickCalendarView(recursos?.length ?? 0);
+  const horarios = (negocio?.horarios as Record<string, string>) ?? {};
+  const horarioDelDia = horarios[diaKey];
 
-  const lista = citas ?? [];
+  const citas = (citasRaw ?? []).map((c) => ({
+    ...c,
+    servicio: Array.isArray(c.servicio) ? (c.servicio[0] ?? null) : c.servicio,
+  }));
 
   return (
     <main className="flex-1 bg-background p-6 md:p-8">
-      <div className="flex items-center justify-between mb-6 animate-fade-slide-in">
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary">Calendario</h1>
-          <p className="text-sm text-text-secondary mt-0.5">
-            {new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
-            {' · '}vista {vista === 'dia' ? 'Día' : 'Semana'}
-          </p>
-        </div>
-      </div>
+      <h1 className="text-2xl font-semibold text-text-primary mb-1 animate-fade-slide-in">
+        Calendario
+      </h1>
+      <p className="text-sm text-text-secondary mb-6 animate-fade-slide-in">
+        {new Date(`${fecha}T00:00:00Z`).toLocaleDateString('es-AR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          timeZone: 'UTC',
+        })}
+      </p>
 
-      {lista.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-10 text-center animate-fade-slide-in">
-          <p className="text-sm text-text-muted">No hay turnos agendados para hoy.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {lista.map((c, i) => (
-            <div key={c.id} className="animate-fade-slide-in" style={{ animationDelay: `${i * 40}ms` }}>
-              <TurnoCard
-                estado={mapCitaEstadoToTurnoCardEstado(c.estado)}
-                hora={c.hora}
-                clienteNombre={c.customer_name ?? undefined}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      <CalendarioClient
+        fecha={fecha}
+        diaSemana={diaSemana}
+        horarioDelDia={horarioDelDia}
+        recursos={recursos ?? []}
+        citas={citas as never}
+        abonos={abonos ?? []}
+        subtipoActual={cancha ?? null}
+      />
     </main>
   );
 }

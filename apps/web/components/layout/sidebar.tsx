@@ -33,9 +33,9 @@ export function Sidebar({
           { href: '/ventas/combos', label: 'Combos', icon: '🎁' },
         ];
 
-  const items: NavItem[] = [
-    { href: '/dashboard', label: 'Inicio', icon: '🏠' },
-    ...verticalItems,
+  const configuracionItems: NavItem[] = [
+    { href: '/configuracion/settings', label: 'Ajustes del agente', icon: '⚙️' },
+    { href: '/configuracion/test-chat', label: 'Probar agente', icon: '💬' },
     { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
   ];
 
@@ -46,6 +46,26 @@ export function Sidebar({
     router.refresh();
   }
 
+  function renderLink(item: NavItem) {
+    const active = pathname === item.href;
+    return (
+      <a
+        key={item.href}
+        href={item.href}
+        className={cn(
+          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
+          'transition-[background-color,color] duration-150 ease-out',
+          active
+            ? 'bg-primary-tint text-primary'
+            : 'text-text-secondary hover:bg-bg-tint hover:text-text-primary'
+        )}
+      >
+        <span aria-hidden>{item.icon}</span>
+        {item.label}
+      </a>
+    );
+  }
+
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:border-border md:bg-card md:h-screen md:sticky md:top-0">
       <div className="p-5 border-b border-border">
@@ -53,26 +73,14 @@ export function Sidebar({
         <p className="text-xs text-text-secondary truncate mt-0.5">{nombreNegocio}</p>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 p-3">
-        {items.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
-                'transition-[background-color,color] duration-150 ease-out',
-                active
-                  ? 'bg-primary-tint text-primary'
-                  : 'text-text-secondary hover:bg-bg-tint hover:text-text-primary'
-              )}
-            >
-              <span aria-hidden>{item.icon}</span>
-              {item.label}
-            </a>
-          );
-        })}
+      <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
+        {renderLink({ href: '/dashboard', label: 'Inicio', icon: '🏠' })}
+        {verticalItems.map(renderLink)}
+
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide px-3 mt-4 mb-1">
+          Configuración
+        </p>
+        {configuracionItems.map(renderLink)}
       </nav>
 
       <div className="p-3 border-t border-border">

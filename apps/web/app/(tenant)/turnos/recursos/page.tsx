@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { hasFeature } from '@/lib/plans/features';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { NuevoRecursoForm } from '@/components/turnos/nuevo-recurso-form';
+import { RecursosTable } from '@/components/turnos/recursos-table';
 
 export default async function RecursosPage() {
   const supabase = await createClient();
@@ -14,7 +15,7 @@ export default async function RecursosPage() {
       .from('negocio_feature_overrides')
       .select('feature_key, habilitado')
       .eq('tenant_id', user!.id),
-    supabase.from('recursos').select('*').eq('tenant_id', user!.id).eq('activo', true),
+    supabase.from('recursos').select('*').eq('tenant_id', user!.id).order('created_at', { ascending: false }),
   ]);
 
   const lista = recursos ?? [];
@@ -28,21 +29,19 @@ export default async function RecursosPage() {
         Recursos
       </h1>
 
+      {puedeAgregarMas && (
+        <div className="animate-fade-slide-in">
+          <NuevoRecursoForm />
+        </div>
+      )}
+
       {lista.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center mb-6 animate-fade-slide-in">
           <p className="text-sm text-text-muted">Todavía no cargaste ningún recurso.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {lista.map((r, i) => (
-            <div key={r.id} className="animate-fade-slide-in" style={{ animationDelay: `${i * 40}ms` }}>
-              <Card className="transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md">
-                <CardHeader>
-                  <CardTitle>{r.nombre}</CardTitle>
-                </CardHeader>
-              </Card>
-            </div>
-          ))}
+        <div className="overflow-x-auto mb-6 animate-fade-slide-in">
+          <RecursosTable recursos={lista} />
         </div>
       )}
 

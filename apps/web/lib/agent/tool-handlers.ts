@@ -26,17 +26,18 @@ async function consultarDisponibilidad(
 }
 
 async function registrarCita(
-  args: { customer_name: string; fecha: string; hora: string },
+  args: { customer_name: string; fecha: string; hora: string; servicio_id?: string },
   ctx: ToolContext
 ): Promise<ToolResult> {
   const { data, error } = await ctx.supabase
     .from('citas')
     .insert({
       tenant_id: ctx.tenantId, // NUNCA tomar el tenant_id de los args del modelo — siempre del contexto verificado
-      customer_id: args.customer_name,
+      customer_id: ctx.phone,
       customer_name: args.customer_name,
       fecha: args.fecha,
       hora: args.hora,
+      servicio_id: args.servicio_id ?? null,
     })
     .select()
     .single();
@@ -180,7 +181,10 @@ export async function executeToolCall(
     case 'consultar_disponibilidad':
       return consultarDisponibilidad(args as { fecha: string }, ctx);
     case 'registrar_cita':
-      return registrarCita(args as { customer_name: string; fecha: string; hora: string }, ctx);
+      return registrarCita(
+        args as { customer_name: string; fecha: string; hora: string; servicio_id?: string },
+        ctx
+      );
     case 'obtener_catalogo':
       return obtenerCatalogo(ctx);
     case 'procesar_pago':
