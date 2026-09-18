@@ -55,7 +55,7 @@ export function CatalogoTable({
       </thead>
       <tbody>
         {productos.map((p) => {
-          const local = valores[p.id];
+          const local = valores[p.id] ?? { precio: p.precio, stock: p.stock, rubro: p.rubro ?? '' };
           const alerta = checkStockAlert(local.stock, p.umbral_alerta_stock ?? null);
           return (
             <tr key={p.id} className="border-b border-border transition-colors duration-150 ease-out hover:bg-bg-tint">
@@ -67,7 +67,7 @@ export function CatalogoTable({
                   value={local.rubro}
                   disabled={guardando === p.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [p.id]: { ...prev[p.id], rubro: e.target.value } }))
+                    setValores((prev) => ({ ...prev, [p.id]: { ...local, rubro: e.target.value } }))
                   }
                   onBlur={(e) => guardarCampo(p.id, 'rubro', e.target.value)}
                 />
@@ -81,7 +81,7 @@ export function CatalogoTable({
                   onChange={(e) =>
                     setValores((prev) => ({
                       ...prev,
-                      [p.id]: { ...prev[p.id], precio: e.target.value === '' ? null : Number(e.target.value) },
+                      [p.id]: { ...local, precio: e.target.value === '' ? null : Number(e.target.value) },
                     }))
                   }
                   onBlur={(e) => guardarCampo(p.id, 'precio', Number(e.target.value))}
@@ -96,7 +96,7 @@ export function CatalogoTable({
                   onChange={(e) =>
                     setValores((prev) => ({
                       ...prev,
-                      [p.id]: { ...prev[p.id], stock: Number(e.target.value) },
+                      [p.id]: { ...local, stock: Number(e.target.value) },
                     }))
                   }
                   onBlur={(e) => guardarCampo(p.id, 'stock', Number(e.target.value))}

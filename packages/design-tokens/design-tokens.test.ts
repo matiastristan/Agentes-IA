@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import tokens from './design-tokens.json';
 
 describe('design tokens', () => {
-  it('define las 4 paletas disponibles', () => {
-    expect(Object.keys(tokens.palettes)).toEqual(['warm', 'cool', 'vibrant', 'lavanda']);
+  it('define las 3 paletas disponibles', () => {
+    expect(Object.keys(tokens.palettes)).toEqual(['apple', 'notion', 'spotify']);
   });
 
   it('cada paleta define primary, secondary, accent y bgTint', () => {

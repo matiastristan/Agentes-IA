@@ -5,10 +5,9 @@
     "800": "#1F2937", "900": "#111827"
   },
   "palettes": {
-    "warm": { "primary50": "#FFF1EC", "primary500": "#EF6B4B", "primary600": "#DA5636", "primary700": "#B8432A", "secondary500": "#FFB347", "accent500": "#FF6B6B", "bgTint": "#FFF5F2" },
-    "cool": { "primary50": "#EEF0FF", "primary500": "#4B5EFC", "primary600": "#3B4DE0", "primary700": "#2E3EBD", "secondary500": "#8B9EFF", "accent500": "#7C3AED", "bgTint": "#F0F4FF" },
-    "vibrant": { "primary50": "#ECFDF5", "primary500": "#10B981", "primary600": "#0D9B6C", "primary700": "#0A7D57", "secondary500": "#F59E0B", "accent500": "#06B6D4", "bgTint": "#F0FDF4" },
-    "lavanda": { "primary50": "#F2F0F7", "primary500": "#A89BBE", "primary600": "#8F7FA8", "primary700": "#6F5F87", "secondary500": "#D8C3A8", "accent500": "#C0AFB3", "bgTint": "#F7F3EF" }
+    "apple": { "primary50": "#E8F2FF", "primary500": "#007AFF", "primary600": "#0062CC", "primary700": "#1D1D1F", "secondary500": "#AAAAAA", "accent500": "#1D1D1F", "bgTint": "#F5F5F7" },
+    "notion": { "primary50": "#FBFAF8", "primary500": "#D9D0C7", "primary600": "#BFB2A3", "primary700": "#373737", "secondary500": "#373737", "accent500": "#E07A5F", "bgTint": "#F7F6F3" },
+    "spotify": { "primary50": "#E8FBF0", "primary500": "#1DB954", "primary600": "#188F42", "primary700": "#0D2818", "secondary500": "#D1FADF", "accent500": "#D1FADF", "bgTint": "#121212" }
   },
   "state": {
     "red500": "#EF4444", "red600": "#DC2626", "red50": "#FEF2F2",

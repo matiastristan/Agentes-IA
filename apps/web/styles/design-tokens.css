@@ -40,42 +40,32 @@
   --color-temp-caliente: #DC2626; --color-temp-caliente-bg: #FEF2F2;
 }
 
-[data-palette="warm"] {
-  --palette-primary-50: #FFF1EC;
-  --palette-primary-500: #EF6B4B;
-  --palette-primary-600: #DA5636;
-  --palette-primary-700: #B8432A;
-  --palette-secondary-500: #FFB347;
-  --palette-accent-500: #FF6B6B;
-  --palette-bg-tint: #FFF5F2;
+[data-palette="apple"] {
+  --palette-primary-50: #E8F2FF;
+  --palette-primary-500: #007AFF;
+  --palette-primary-600: #0062CC;
+  --palette-primary-700: #1D1D1F;
+  --palette-secondary-500: #AAAAAA;
+  --palette-accent-500: #1D1D1F;
+  --palette-bg-tint: #F5F5F7;
 }
 
-[data-palette="cool"] {
-  --palette-primary-50: #EEF0FF;
-  --palette-primary-500: #4B5EFC;
-  --palette-primary-600: #3B4DE0;
-  --palette-primary-700: #2E3EBD;
-  --palette-secondary-500: #8B9EFF;
-  --palette-accent-500: #7C3AED;
-  --palette-bg-tint: #F0F4FF;
+[data-palette="notion"] {
+  --palette-primary-50: #FBFAF8;
+  --palette-primary-500: #D9D0C7;
+  --palette-primary-600: #BFB2A3;
+  --palette-primary-700: #373737;
+  --palette-secondary-500: #373737;
+  --palette-accent-500: #E07A5F;
+  --palette-bg-tint: #F7F6F3;
 }
 
-[data-palette="vibrant"] {
-  --palette-primary-50: #ECFDF5;
-  --palette-primary-500: #10B981;
-  --palette-primary-600: #0D9B6C;
-  --palette-primary-700: #0A7D57;
-  --palette-secondary-500: #F59E0B;
-  --palette-accent-500: #06B6D4;
-  --palette-bg-tint: #F0FDF4;
-}
-
-[data-palette="lavanda"] {
-  --palette-primary-50: #F2F0F7;
-  --palette-primary-500: #A89BBE;
-  --palette-primary-600: #8F7FA8;
-  --palette-primary-700: #6F5F87;
-  --palette-secondary-500: #D8C3A8;
-  --palette-accent-500: #C0AFB3;
-  --palette-bg-tint: #F7F3EF;
+[data-palette="spotify"] {
+  --palette-primary-50: #E8FBF0;
+  --palette-primary-500: #1DB954;
+  --palette-primary-600: #188F42;
+  --palette-primary-700: #0D2818;
+  --palette-secondary-500: #D1FADF;
+  --palette-accent-500: #D1FADF;
+  --palette-bg-tint: #121212;
 }

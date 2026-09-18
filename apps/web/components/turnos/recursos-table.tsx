@@ -38,7 +38,7 @@ export function RecursosTable({ recursos }: { recursos: Recurso[] }) {
       </thead>
       <tbody>
         {recursos.map((r) => {
-          const local = valores[r.id];
+          const local = valores[r.id] ?? { nombre: r.nombre, subtipo: r.subtipo ?? '', activo: r.activo };
           return (
             <tr key={r.id} className="border-b border-border transition-colors duration-150 ease-out hover:bg-bg-tint">
               <td className="py-2 pr-4">
@@ -47,7 +47,7 @@ export function RecursosTable({ recursos }: { recursos: Recurso[] }) {
                   value={local.nombre}
                   disabled={guardando === r.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [r.id]: { ...prev[r.id], nombre: e.target.value } }))
+                    setValores((prev) => ({ ...prev, [r.id]: { ...local, nombre: e.target.value } }))
                   }
                   onBlur={(e) => guardarCampo(r.id, 'nombre', e.target.value)}
                 />
@@ -59,7 +59,7 @@ export function RecursosTable({ recursos }: { recursos: Recurso[] }) {
                   value={local.subtipo}
                   disabled={guardando === r.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [r.id]: { ...prev[r.id], subtipo: e.target.value } }))
+                    setValores((prev) => ({ ...prev, [r.id]: { ...local, subtipo: e.target.value } }))
                   }
                   onBlur={(e) => guardarCampo(r.id, 'subtipo', e.target.value)}
                 />
@@ -69,7 +69,7 @@ export function RecursosTable({ recursos }: { recursos: Recurso[] }) {
                   checked={local.activo}
                   disabled={guardando === r.id}
                   onCheckedChange={(value) => {
-                    setValores((prev) => ({ ...prev, [r.id]: { ...prev[r.id], activo: value } }));
+                    setValores((prev) => ({ ...prev, [r.id]: { ...local, activo: value } }));
                     guardarCampo(r.id, 'activo', value);
                   }}
                   label={`Activo: ${r.nombre}`}

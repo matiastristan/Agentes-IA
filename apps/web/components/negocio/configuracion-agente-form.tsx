@@ -20,29 +20,19 @@ const inputClass =
   'transition-[border-color,box-shadow] duration-150 ease-out ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1';
 
-const PALETAS = [
-  { key: 'warm', label: 'Cálida', swatch: '#EF6B4B' },
-  { key: 'cool', label: 'Fría', swatch: '#4B5EFC' },
-  { key: 'vibrant', label: 'Vibrante', swatch: '#10B981' },
-  { key: 'lavanda', label: 'Lavanda x Beige', swatch: '#A89BBE' },
-];
-
 export function ConfiguracionAgenteForm({
   tonoVozActual,
   horariosActuales,
   instruccionesActuales,
-  colorPaletteActual,
 }: {
   tonoVozActual: string;
   horariosActuales: Record<string, string>;
   instruccionesActuales: string;
-  colorPaletteActual: string;
 }) {
   const router = useRouter();
   const [tonoVoz, setTonoVoz] = useState(tonoVozActual);
   const [horarios, setHorarios] = useState<Record<string, string>>(horariosActuales);
   const [instrucciones, setInstrucciones] = useState(instruccionesActuales);
-  const [colorPalette, setColorPalette] = useState(colorPaletteActual);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,7 +45,6 @@ export function ConfiguracionAgenteForm({
         tono_voz: tonoVoz,
         horarios,
         instrucciones_adicionales: instrucciones,
-        color_palette: colorPalette,
       }),
     });
 
@@ -114,32 +103,6 @@ export function ConfiguracionAgenteForm({
           onChange={(e) => setInstrucciones(e.target.value)}
           placeholder="ej: Los sábados no se hacen descuentos. Si preguntan por cancelaciones, avisar que hay que avisar con 24hs de anticipación."
         />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-text-secondary">Paleta de colores</label>
-        <div className="flex gap-3">
-          {PALETAS.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              onClick={() => setColorPalette(p.key)}
-              className={
-                'flex flex-col items-center gap-1.5 rounded-lg border p-2 transition-[transform,box-shadow] duration-150 ease-out ' +
-                (colorPalette === p.key
-                  ? 'border-primary shadow-md -translate-y-0.5'
-                  : 'border-border hover:-translate-y-0.5')
-              }
-            >
-              <span
-                aria-hidden
-                className="h-8 w-8 rounded-full"
-                style={{ backgroundColor: p.swatch }}
-              />
-              <span className="text-xs text-text-secondary">{p.label}</span>
-            </button>
-          ))}
-        </div>
       </div>
 
       <Button type="submit" disabled={loading} className="self-start">

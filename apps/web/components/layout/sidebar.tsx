@@ -27,7 +27,6 @@ export function Sidebar({
           { href: '/turnos/abonos', label: 'Mensualizados', icon: '🔁' },
           { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
           { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
-          { href: '/turnos/configuracion', label: 'Recordatorios', icon: '⏰' },
         ]
       : [
           { href: '/ventas/catalogo', label: 'Catálogo', icon: '📦' },
@@ -37,6 +36,7 @@ export function Sidebar({
   const configuracionItems: NavItem[] = [
     ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: '📦' }] : []),
     { href: '/configuracion/settings', label: 'Ajustes del agente', icon: '⚙️' },
+    { href: '/configuracion/apariencia', label: 'Apariencia', icon: '🎨' },
     { href: '/configuracion/test-chat', label: 'Probar agente', icon: '💬' },
     { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
   ];

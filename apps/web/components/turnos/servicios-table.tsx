@@ -68,7 +68,13 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
       </thead>
       <tbody>
         {servicios.map((s) => {
-          const local = valores[s.id];
+          const local = valores[s.id] ?? {
+            nombre: s.nombre,
+            subtipo: s.subtipo ?? '',
+            precio: s.precio,
+            duracion: s.duracion_minutos,
+            activo: s.activo,
+          };
           return (
             <tr key={s.id} className="border-b border-border transition-colors duration-150 ease-out hover:bg-bg-tint">
               <td className="py-2 pr-4">
@@ -77,7 +83,7 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   value={local.nombre}
                   disabled={guardando === s.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [s.id]: { ...prev[s.id], nombre: e.target.value } }))
+                    setValores((prev) => ({ ...prev, [s.id]: { ...local, nombre: e.target.value } }))
                   }
                   onBlur={(e) => guardarCampo(s.id, 'nombre', e.target.value)}
                 />
@@ -89,7 +95,7 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   value={local.subtipo}
                   disabled={guardando === s.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [s.id]: { ...prev[s.id], subtipo: e.target.value } }))
+                    setValores((prev) => ({ ...prev, [s.id]: { ...local, subtipo: e.target.value } }))
                   }
                   onBlur={(e) => guardarCampo(s.id, 'subtipo', e.target.value)}
                 />
@@ -101,7 +107,7 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   value={local.duracion}
                   disabled={guardando === s.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [s.id]: { ...prev[s.id], duracion: Number(e.target.value) } }))
+                    setValores((prev) => ({ ...prev, [s.id]: { ...local, duracion: Number(e.target.value) } }))
                   }
                   onBlur={(e) => guardarCampo(s.id, 'duracionMinutos', Number(e.target.value))}
                 />
@@ -113,7 +119,7 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   value={local.precio}
                   disabled={guardando === s.id}
                   onChange={(e) =>
-                    setValores((prev) => ({ ...prev, [s.id]: { ...prev[s.id], precio: Number(e.target.value) } }))
+                    setValores((prev) => ({ ...prev, [s.id]: { ...local, precio: Number(e.target.value) } }))
                   }
                   onBlur={(e) => guardarCampo(s.id, 'precio', Number(e.target.value))}
                 />
@@ -123,7 +129,7 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   checked={local.activo}
                   disabled={guardando === s.id}
                   onCheckedChange={(value) => {
-                    setValores((prev) => ({ ...prev, [s.id]: { ...prev[s.id], activo: value } }));
+                    setValores((prev) => ({ ...prev, [s.id]: { ...local, activo: value } }));
                     guardarCampo(s.id, 'activo', value);
                   }}
                   label={`Activo: ${s.nombre}`}
