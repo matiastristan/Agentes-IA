@@ -32,4 +32,17 @@ describe('mapExcelRowToProducto', () => {
     expect(result.stock).toBe(0);
     expect(result.atributos).toEqual({ marca: 'Genérica' });
   });
+
+  it('reconoce rubro como columna propia (no va a atributos)', () => {
+    const row = { nombre: 'Coca Cola', precio: 2000, stock: 50, rubro: 'bebidas' };
+    const result = mapExcelRowToProducto(row);
+    expect(result.rubro).toBe('bebidas');
+    expect(result.atributos).toEqual({});
+  });
+
+  it('sin columna rubro, queda undefined (no rompe)', () => {
+    const row = { nombre: 'Producto', precio: 100, stock: 3 };
+    const result = mapExcelRowToProducto(row);
+    expect(result.rubro).toBeUndefined();
+  });
 });

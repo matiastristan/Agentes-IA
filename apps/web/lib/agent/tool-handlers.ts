@@ -1,3 +1,5 @@
+import { findRecursoDisponible } from '../turnos/find-recurso-disponible';
+
 interface ToolContext {
   tenantId: string;
   tier: 'base' | 'pro';
@@ -29,6 +31,41 @@ async function registrarCita(
   args: { customer_name: string; fecha: string; hora: string; servicio_id?: string },
   ctx: ToolContext
 ): Promise<ToolResult> {
+  let recursoId: string | null = null;
+
+  if (args.servicio_id) {
+    const { data: servicio } = await ctx.supabase
+      .from('servicios')
+      .select('subtipo, duracion_minutos, precio')
+      .eq('id', args.servicio_id)
+      .eq('tenant_id', ctx.tenantId)
+      .single();
+
+    const { data: recursos } = await ctx.supabase
+      .from('recursos')
+      .select('id, subtipo')
+      .eq('tenant_id', ctx.tenantId)
+      .eq('activo', true);
+
+    const { data: citasExistentes } = await ctx.supabase
+      .from('citas')
+      .select('recurso_id, hora')
+      .eq('tenant_id', ctx.tenantId)
+      .eq('fecha', args.fecha)
+      .neq('estado', 'cancelada');
+
+    recursoId = findRecursoDisponible({
+      recursos: recursos ?? [],
+      subtipo: servicio?.subtipo ?? null,
+      hora: args.hora,
+      citasExistentes: citasExistentes ?? [],
+    });
+
+    if (!recursoId) {
+      return { error: 'No hay ninguna cancha disponible para ese servicio a esa hora' };
+    }
+  }
+
   const { data, error } = await ctx.supabase
     .from('citas')
     .insert({
@@ -38,6 +75,7 @@ async function registrarCita(
       fecha: args.fecha,
       hora: args.hora,
       servicio_id: args.servicio_id ?? null,
+      recurso_id: recursoId,
     })
     .select()
     .single();

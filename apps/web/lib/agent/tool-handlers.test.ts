@@ -19,6 +19,41 @@ function createMockSupabase(resolvedValue: { data: unknown; error: unknown }) {
 
 const TENANT_A = 'tenant-a-uuid';
 
+// Mock que distingue respuestas según tabla+método (from().select() vs from().insert()),
+// necesario para probar flujos con varias consultas encadenadas a tablas distintas
+// (ej. registrar_cita que consulta servicios, recursos y citas antes de insertar).
+function createTableAwareMock(responses: Record<string, { data: unknown; error: unknown }>) {
+  const calls: { method: string; args: unknown[] }[] = [];
+  let currentKey = '';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chain: any = {
+    from: (...args: unknown[]) => {
+      currentKey = String(args[0]);
+      calls.push({ method: 'from', args });
+      return chain;
+    },
+    select: (...args: unknown[]) => {
+      currentKey = `${currentKey}:select`;
+      calls.push({ method: 'select', args });
+      return chain;
+    },
+    insert: (...args: unknown[]) => {
+      currentKey = `${currentKey}:insert`;
+      calls.push({ method: 'insert', args });
+      return chain;
+    },
+    eq: (...args: unknown[]) => (calls.push({ method: 'eq', args }), chain),
+    neq: (...args: unknown[]) => (calls.push({ method: 'neq', args }), chain),
+    single: () => {
+      calls.push({ method: 'single', args: [] });
+      return Promise.resolve(responses[currentKey] ?? { data: null, error: null });
+    },
+    then: (resolve: (v: unknown) => void) =>
+      resolve(responses[currentKey] ?? { data: null, error: null }),
+  };
+  return { client: chain, calls };
+}
+
 describe('executeToolCall — aislamiento multi-tenant', () => {
   it('consultar_disponibilidad filtra explícitamente por tenant_id', async () => {
     const { client, calls } = createMockSupabase({ data: [], error: null });
@@ -65,16 +100,47 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     expect(payload.customer_name).toBe('Juan');
   });
 
-  it('registrar_cita guarda servicio_id cuando el modelo lo pasa', async () => {
-    const { client, calls } = createMockSupabase({ data: { id: '1' }, error: null });
+  it('registrar_cita guarda servicio_id cuando el modelo lo pasa, y asigna una cancha libre de ese subtipo', async () => {
+    const { client, calls } = createTableAwareMock({
+      'servicios:select': { data: { subtipo: 'futbol_5', duracion_minutos: 60, precio: 42000 }, error: null },
+      'recursos:select': {
+        data: [
+          { id: 'r1', subtipo: 'futbol_5' },
+          { id: 'r2', subtipo: 'futbol_5' },
+        ],
+        error: null,
+      },
+      'citas:select': { data: [], error: null }, // nadie más reservado ese día
+      'citas:insert': { data: { id: 'cita-nueva' }, error: null },
+    });
+
     await executeToolCall(
       'registrar_cita',
-      { customer_name: 'Juan', fecha: '2026-10-01', hora: '10:00', servicio_id: 'srv-123' },
+      { customer_name: 'Juan', fecha: '2026-10-01', hora: '18:00', servicio_id: 'srv-123' },
       { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
     );
+
     const insertCall = calls.find((c) => c.method === 'insert');
-    const payload = insertCall!.args[0] as { servicio_id: string | null };
+    const payload = insertCall!.args[0] as { servicio_id: string; recurso_id: string | null };
     expect(payload.servicio_id).toBe('srv-123');
+    expect(payload.recurso_id).toBe('r1'); // la primera cancha libre de fútbol 5
+  });
+
+  it('registrar_cita devuelve error (sin insertar) si no hay ninguna cancha libre de ese subtipo a esa hora', async () => {
+    const { client, calls } = createTableAwareMock({
+      'servicios:select': { data: { subtipo: 'futbol_5', duracion_minutos: 60, precio: 42000 }, error: null },
+      'recursos:select': { data: [{ id: 'r1', subtipo: 'futbol_5' }], error: null },
+      'citas:select': { data: [{ recurso_id: 'r1', hora: '18:00' }], error: null }, // ya ocupada
+    });
+
+    const result = await executeToolCall(
+      'registrar_cita',
+      { customer_name: 'Juan', fecha: '2026-10-01', hora: '18:00', servicio_id: 'srv-123' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+
+    expect(result.error).toBeDefined();
+    expect(calls.some((c) => c.method === 'insert')).toBe(false); // nunca llegó a insertar
   });
 
   it('registrar_cita guarda servicio_id como null si no se pasa (no rompe)', async () => {

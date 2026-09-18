@@ -12,13 +12,19 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const update: { tono_voz?: string; horarios?: Record<string, string>; instrucciones_adicionales?: string } = {};
+  const update: {
+    tono_voz?: string;
+    horarios?: Record<string, string>;
+    instrucciones_adicionales?: string;
+    color_palette?: string;
+  } = {};
 
   if (typeof body.tono_voz === 'string') update.tono_voz = body.tono_voz;
   if (body.horarios && typeof body.horarios === 'object') update.horarios = body.horarios;
   if (typeof body.instrucciones_adicionales === 'string') {
     update.instrucciones_adicionales = body.instrucciones_adicionales;
   }
+  if (typeof body.color_palette === 'string') update.color_palette = body.color_palette;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'Nada para actualizar' }, { status: 400 });

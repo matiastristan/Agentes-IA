@@ -40,7 +40,7 @@ const registrar_cita: ToolDefinition = {
         hora: { type: 'string', description: 'Hora en formato HH:MM' },
         servicio_id: {
           type: 'string',
-          description: 'El "id" del servicio elegido, tal como aparece en el catálogo. Opcional, pero pasalo siempre que sepas cuál servicio es.',
+          description: 'El "id" del servicio elegido, tal como aparece en el catálogo. IMPORTANTE: pasalo siempre que el cliente haya elegido un servicio — sin esto, la reserva no queda asignada a ninguna cancha física y no va a aparecer bien en el calendario del negocio.',
         },
       },
       required: ['customer_name', 'fecha', 'hora'],

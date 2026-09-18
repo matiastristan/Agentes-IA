@@ -3,12 +3,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 interface Consumo {
   id: string;
   descripcion: string;
   precio: number;
+}
+
+interface Producto {
+  id: string;
+  nombre: string;
+  precio: number | null;
+  stock: number;
 }
 
 interface TurnoAbierto {
@@ -24,15 +30,16 @@ interface TurnoAbierto {
 
 export function CuentaTurnoModal({
   turno,
+  productos,
   onClose,
 }: {
   turno: TurnoAbierto | null;
+  productos: Producto[];
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [consumos, setConsumos] = useState<Consumo[]>([]);
-  const [descripcion, setDescripcion] = useState('');
-  const [precio, setPrecio] = useState('');
+  const [productoSeleccionado, setProductoSeleccionado] = useState('');
   const [loading, setLoading] = useState(false);
   const [cerrando, setCerrando] = useState(false);
 
@@ -61,7 +68,9 @@ export function CuentaTurnoModal({
 
   async function agregarConsumo(e: React.FormEvent) {
     e.preventDefault();
-    if (!turno || !descripcion.trim() || !precio) return;
+    if (!turno || !productoSeleccionado) return;
+    const producto = productos.find((p) => p.id === productoSeleccionado);
+    if (!producto) return;
     setLoading(true);
 
     await fetch('/api/turnos/consumos', {
@@ -70,13 +79,13 @@ export function CuentaTurnoModal({
         citaId: turno.tipo === 'cita' ? turno.id : undefined,
         abonoId: turno.tipo === 'abono' ? turno.id : undefined,
         fecha: turno.fecha,
-        descripcion,
-        precio: Number(precio),
+        descripcion: producto.nombre,
+        precio: producto.precio ?? 0,
+        productoId: producto.id,
       }),
     });
 
-    setDescripcion('');
-    setPrecio('');
+    setProductoSeleccionado('');
     setLoading(false);
     await cargarConsumos();
   }
@@ -180,25 +189,27 @@ export function CuentaTurnoModal({
           </div>
 
           <form onSubmit={agregarConsumo} className="flex gap-2 mb-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Ej: Coca Cola"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-              />
-            </div>
-            <div className="w-24">
-              <Input
-                type="number"
-                placeholder="$"
-                value={precio}
-                onChange={(e) => setPrecio(e.target.value)}
-              />
-            </div>
-            <Button type="submit" variant="secondary" disabled={loading}>
+            <select
+              value={productoSeleccionado}
+              onChange={(e) => setProductoSeleccionado(e.target.value)}
+              className="flex-1 h-10 rounded-md border border-border px-3 bg-background text-sm"
+            >
+              <option value="">Elegí del stock...</option>
+              {productos.map((p) => (
+                <option key={p.id} value={p.id} disabled={p.stock <= 0}>
+                  {p.nombre} — ${p.precio ?? 0} {p.stock <= 0 ? '(sin stock)' : `(${p.stock} disp.)`}
+                </option>
+              ))}
+            </select>
+            <Button type="submit" variant="secondary" disabled={loading || !productoSeleccionado}>
               +
             </Button>
           </form>
+          {productos.length === 0 && (
+            <p className="text-xs text-text-muted -mt-2 mb-4">
+              Todavía no cargaste stock — hacelo en Configuración → Stock.
+            </p>
+          )}
 
           <Button onClick={cerrarCuenta} disabled={cerrando} className="w-full">
             {cerrando ? 'Enviando...' : 'Cerrar cuenta y enviar detalle por WhatsApp'}

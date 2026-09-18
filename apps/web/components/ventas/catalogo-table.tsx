@@ -8,6 +8,7 @@ interface Producto {
   nombre: string;
   precio: number | null;
   stock: number;
+  rubro: string | null;
   umbral_alerta_stock: number | null;
   atributos: Record<string, unknown>;
 }
@@ -19,12 +20,16 @@ export function CatalogoTable({
   productos: Producto[];
   columnasDinamicas: string[];
 }) {
-  const [valores, setValores] = useState<Record<string, { precio: number | null; stock: number }>>(
-    Object.fromEntries(productos.map((p) => [p.id, { precio: p.precio, stock: p.stock }]))
+  const [valores, setValores] = useState<
+    Record<string, { precio: number | null; stock: number; rubro: string }>
+  >(
+    Object.fromEntries(
+      productos.map((p) => [p.id, { precio: p.precio, stock: p.stock, rubro: p.rubro ?? '' }])
+    )
   );
   const [guardando, setGuardando] = useState<string | null>(null);
 
-  async function guardarCampo(id: string, campo: 'precio' | 'stock', valor: number) {
+  async function guardarCampo(id: string, campo: 'precio' | 'stock' | 'rubro', valor: number | string) {
     setGuardando(id);
     await fetch(`/api/ventas/productos/${id}`, {
       method: 'PATCH',
@@ -38,6 +43,7 @@ export function CatalogoTable({
       <thead>
         <tr className="border-b border-border text-left text-text-secondary">
           <th className="py-2 pr-4">Nombre</th>
+          <th className="py-2 pr-4">Rubro</th>
           <th className="py-2 pr-4">Precio</th>
           <th className="py-2 pr-4">Stock</th>
           {columnasDinamicas.map((col) => (
@@ -54,6 +60,18 @@ export function CatalogoTable({
           return (
             <tr key={p.id} className="border-b border-border transition-colors duration-150 ease-out hover:bg-bg-tint">
               <td className="py-2 pr-4">{p.nombre}</td>
+              <td className="py-2 pr-4">
+                <input
+                  className="w-28 rounded border border-border px-2 py-1 bg-transparent"
+                  placeholder="ej: bebidas"
+                  value={local.rubro}
+                  disabled={guardando === p.id}
+                  onChange={(e) =>
+                    setValores((prev) => ({ ...prev, [p.id]: { ...prev[p.id], rubro: e.target.value } }))
+                  }
+                  onBlur={(e) => guardarCampo(p.id, 'rubro', e.target.value)}
+                />
+              </td>
               <td className="py-2 pr-4">
                 <input
                   type="number"

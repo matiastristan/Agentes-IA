@@ -16,6 +16,7 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
     tipoCrm === 'turnos'
       ? [
           { href: '/turnos', label: 'Calendario', icon: '📅' },
+          { href: '/turnos/abonos', label: 'Mensualizados', icon: '🔁' },
           { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
           { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
           { href: '/turnos/configuracion', label: 'Recordatorios', icon: '⏰' },
@@ -28,6 +29,7 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
   const items: NavItem[] = [
     { href: '/dashboard', label: 'Inicio', icon: '🏠' },
     ...verticalItems,
+    ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: '📦' }] : []),
     { href: '/configuracion/settings', label: 'Ajustes', icon: '⚙️' },
     { href: '/configuracion/test-chat', label: 'Probar agente', icon: '💬' },
     { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },

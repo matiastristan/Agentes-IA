@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { NuevoComboForm } from '@/components/ventas/nuevo-combo-form';
+import { CombosList } from '@/components/ventas/combos-list';
 
 export default async function CombosPage() {
   const supabase = await createClient();
@@ -10,7 +10,7 @@ export default async function CombosPage() {
 
   const [{ data: productos }, { data: combos }] = await Promise.all([
     supabase.from('productos').select('id, nombre').eq('tenant_id', user!.id).eq('activo', true),
-    supabase.from('combos').select('*').eq('tenant_id', user!.id).eq('activo', true),
+    supabase.from('combos').select('*').eq('tenant_id', user!.id).order('created_at', { ascending: false }),
   ]);
 
   const lista = combos ?? [];
@@ -30,19 +30,8 @@ export default async function CombosPage() {
           <p className="text-sm text-text-muted">Todavía no armaste ningún combo.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          {lista.map((c, i) => (
-            <div key={c.id} className="animate-fade-slide-in" style={{ animationDelay: `${i * 40}ms` }}>
-              <Card className="transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md">
-                <CardHeader>
-                  <CardTitle>{c.nombre}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-text-secondary">${c.precio}</p>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
+        <div className="mt-6 animate-fade-slide-in">
+          <CombosList combos={lista} />
         </div>
       )}
     </main>

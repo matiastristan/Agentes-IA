@@ -6,6 +6,7 @@ interface ProductoImportado {
   nombre: string;
   precio?: number;
   stock: number;
+  rubro?: string;
   atributos: Record<string, unknown>;
 }
 
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
     nombre: p.nombre,
     precio: p.precio ?? null,
     stock: p.stock,
+    rubro: p.rubro ?? null,
     atributos: p.atributos as Json,
   }));
 

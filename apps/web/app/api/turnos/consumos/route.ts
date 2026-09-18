@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
 
-  const { citaId, abonoId, fecha, descripcion, precio } = await request.json();
+  const { citaId, abonoId, fecha, descripcion, precio, productoId } = await request.json();
 
   if (!citaId && !abonoId) {
     return NextResponse.json({ error: 'Falta cita_id o abono_id' }, { status: 400 });
@@ -58,12 +58,30 @@ export async function POST(request: NextRequest) {
       fecha: fecha ?? new Date().toISOString().slice(0, 10),
       descripcion,
       precio,
+      producto_id: productoId ?? null,
     })
     .select()
     .single();
 
   if (error) {
     return NextResponse.json({ error: 'No se pudo agregar el consumo' }, { status: 500 });
+  }
+
+  // Si el consumo viene de un producto real del stock, descontamos 1 unidad
+  if (productoId) {
+    const { data: producto } = await supabase
+      .from('productos')
+      .select('stock')
+      .eq('id', productoId)
+      .eq('tenant_id', user.id)
+      .single();
+    if (producto) {
+      await supabase
+        .from('productos')
+        .update({ stock: Math.max(0, producto.stock - 1) })
+        .eq('id', productoId)
+        .eq('tenant_id', user.id);
+    }
   }
 
   return NextResponse.json({ ok: true, consumo: data });

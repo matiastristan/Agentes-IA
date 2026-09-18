@@ -11,6 +11,7 @@ interface ProductoPreview {
   nombre: string;
   precio?: number;
   stock: number;
+  rubro?: string;
   atributos: Record<string, unknown>;
 }
 
@@ -81,7 +82,8 @@ export function ExcelUploader() {
         <>
           <p className="text-sm text-text-secondary">
             Para que el agente aproveche mejor tu catálogo, te recomendamos incluir en tu Excel
-            las columnas <strong>nombre</strong>, <strong>precio</strong> y <strong>stock</strong>.
+            las columnas <strong>nombre</strong>, <strong>precio</strong>, <strong>stock</strong> y{' '}
+            <strong>rubro</strong> (ej: alimentos, bebidas, snacks, indumentaria, accesorios).
             Cualquier otra columna (talle, color, peso, marca, lo que necesites) también se guarda.
           </p>
           <input
@@ -108,6 +110,7 @@ export function ExcelUploader() {
                     <th className="py-2 pr-4">Nombre</th>
                     <th className="py-2 pr-4">Precio</th>
                     <th className="py-2 pr-4">Stock</th>
+                    <th className="py-2 pr-4">Rubro</th>
                     {columnasDinamicas.map((col) => (
                       <th key={col} className="py-2 pr-4 capitalize">
                         {col}
@@ -121,6 +124,7 @@ export function ExcelUploader() {
                       <td className="py-2 pr-4">{p.nombre}</td>
                       <td className="py-2 pr-4">{p.precio ?? '-'}</td>
                       <td className="py-2 pr-4">{p.stock}</td>
+                      <td className="py-2 pr-4">{p.rubro ?? '-'}</td>
                       {columnasDinamicas.map((col) => (
                         <td key={col} className="py-2 pr-4">
                           {String(p.atributos[col] ?? '')}

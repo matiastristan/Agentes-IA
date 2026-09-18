@@ -63,6 +63,7 @@ export type Database = {
           fecha: string
           id: string
           precio: number
+          producto_id: string | null
           tenant_id: string
         }
         Insert: {
@@ -73,6 +74,7 @@ export type Database = {
           fecha: string
           id?: string
           precio: number
+          producto_id?: string | null
           tenant_id: string
         }
         Update: {
@@ -83,6 +85,7 @@ export type Database = {
           fecha?: string
           id?: string
           precio?: number
+          producto_id?: string | null
           tenant_id?: string
         }
         Relationships: []
@@ -593,6 +596,7 @@ export type Database = {
           id: string
           nombre: string
           precio: number | null
+          rubro: string | null
           stock: number
           tenant_id: string
           umbral_alerta_stock: number | null
@@ -606,6 +610,7 @@ export type Database = {
           id?: string
           nombre: string
           precio?: number | null
+          rubro?: string | null
           stock?: number
           tenant_id: string
           umbral_alerta_stock?: number | null
@@ -619,6 +624,7 @@ export type Database = {
           id?: string
           nombre?: string
           precio?: number | null
+          rubro?: string | null
           stock?: number
           tenant_id?: string
           umbral_alerta_stock?: number | null
@@ -747,6 +753,7 @@ export type Database = {
           nombre: string
           precio: number
           promociones: Json
+          subtipo: string | null
           tenant_id: string
           updated_at: string
         }
@@ -759,6 +766,7 @@ export type Database = {
           nombre: string
           precio: number
           promociones?: Json
+          subtipo?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -771,6 +779,7 @@ export type Database = {
           nombre?: string
           precio?: number
           promociones?: Json
+          subtipo?: string | null
           tenant_id?: string
           updated_at?: string
         }

@@ -69,3 +69,13 @@
   --palette-accent-500: #06B6D4;
   --palette-bg-tint: #F0FDF4;
 }
+
+[data-palette="lavanda"] {
+  --palette-primary-50: #F2F0F7;
+  --palette-primary-500: #A89BBE;
+  --palette-primary-600: #8F7FA8;
+  --palette-primary-700: #6F5F87;
+  --palette-secondary-500: #D8C3A8;
+  --palette-accent-500: #C0AFB3;
+  --palette-bg-tint: #F7F3EF;
+}

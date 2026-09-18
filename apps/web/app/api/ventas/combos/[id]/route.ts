@@ -12,25 +12,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   const { id } = await params;
-  const body = await request.json();
+  const { activo } = await request.json();
 
-  const update: { precio?: number; stock?: number; rubro?: string } = {};
-  if (typeof body.precio === 'number') update.precio = body.precio;
-  if (typeof body.stock === 'number') update.stock = body.stock;
-  if (typeof body.rubro === 'string') update.rubro = body.rubro;
-
-  if (Object.keys(update).length === 0) {
+  if (typeof activo !== 'boolean') {
     return NextResponse.json({ error: 'Nada para actualizar' }, { status: 400 });
   }
 
-  const { error } = await supabase
-    .from('productos')
-    .update(update)
-    .eq('id', id)
-    .eq('tenant_id', user.id);
+  const { error } = await supabase.from('combos').update({ activo }).eq('id', id).eq('tenant_id', user.id);
 
   if (error) {
-    return NextResponse.json({ error: 'No se pudo actualizar el producto' }, { status: 500 });
+    return NextResponse.json({ error: 'No se pudo actualizar el combo' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

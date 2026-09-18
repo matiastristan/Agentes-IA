@@ -2,16 +2,18 @@ interface ProductoMapeado {
   nombre: string;
   precio?: number;
   stock: number;
+  rubro?: string;
   atributos: Record<string, unknown>;
 }
 
-const CAMPOS_RECONOCIDOS = ['nombre', 'precio', 'stock'];
+const CAMPOS_RECONOCIDOS = ['nombre', 'precio', 'stock', 'rubro'];
 
 export function mapExcelRowToProducto(row: Record<string, unknown>): ProductoMapeado {
   const atributos: Record<string, unknown> = {};
   let nombre = '';
   let precio: number | undefined;
   let stock = 0;
+  let rubro: string | undefined;
 
   for (const [key, value] of Object.entries(row)) {
     const keyLower = key.toLowerCase().trim();
@@ -21,10 +23,12 @@ export function mapExcelRowToProducto(row: Record<string, unknown>): ProductoMap
       precio = Number(value);
     } else if (keyLower === 'stock') {
       stock = Number(value);
+    } else if (keyLower === 'rubro') {
+      rubro = String(value);
     } else if (!CAMPOS_RECONOCIDOS.includes(keyLower)) {
       atributos[key] = value;
     }
   }
 
-  return { nombre, precio, stock, atributos };
+  return { nombre, precio, stock, rubro, atributos };
 }

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildCalendarioSlots } from '@/lib/turnos/build-calendario-slots';
 import { CuentaTurnoModal } from './cuenta-turno-modal';
+import { NuevaCitaManualModal } from './nueva-cita-manual-modal';
 import { cn } from '@/lib/utils';
 
 interface RecursoRaw {
@@ -32,6 +33,19 @@ interface AbonoRaw {
   precio: number;
 }
 
+interface ProductoRaw {
+  id: string;
+  nombre: string;
+  precio: number | null;
+  stock: number;
+}
+
+interface ServicioOption {
+  id: string;
+  nombre: string;
+  precio: number;
+}
+
 interface TurnoAbierto {
   tipo: 'cita' | 'abono';
   id: string;
@@ -43,6 +57,13 @@ interface TurnoAbierto {
   fecha: string;
 }
 
+interface SlotVacio {
+  fecha: string;
+  hora: string;
+  recursoId: string;
+  recursoNombre: string;
+}
+
 export function CalendarioClient({
   fecha,
   diaSemana,
@@ -50,6 +71,8 @@ export function CalendarioClient({
   recursos,
   citas,
   abonos,
+  productos,
+  servicios,
   subtipoActual,
 }: {
   fecha: string;
@@ -58,10 +81,13 @@ export function CalendarioClient({
   recursos: RecursoRaw[];
   citas: CitaRaw[];
   abonos: AbonoRaw[];
+  productos: ProductoRaw[];
+  servicios: ServicioOption[];
   subtipoActual: string | null;
 }) {
   const router = useRouter();
   const [turnoAbierto, setTurnoAbierto] = useState<TurnoAbierto | null>(null);
+  const [slotVacio, setSlotVacio] = useState<SlotVacio | null>(null);
 
   const subtiposDisponibles = useMemo(
     () => Array.from(new Set(recursos.map((r) => r.subtipo).filter(Boolean))) as string[],
@@ -165,24 +191,29 @@ export function CalendarioClient({
                     <button
                       key={h.hora}
                       onClick={() =>
-                        h.turno &&
-                        setTurnoAbierto({
-                          tipo: h.turno.tipo,
-                          id: h.turno.id,
-                          clienteNombre: h.turno.clienteNombre,
-                          clienteTelefono: h.turno.clienteTelefono,
-                          precio: h.turno.precio,
-                          hora: h.hora,
-                          horaFin: h.turno.horaFin,
-                          fecha,
-                        })
+                        h.turno
+                          ? setTurnoAbierto({
+                              tipo: h.turno.tipo,
+                              id: h.turno.id,
+                              clienteNombre: h.turno.clienteNombre,
+                              clienteTelefono: h.turno.clienteTelefono,
+                              precio: h.turno.precio,
+                              hora: h.hora,
+                              horaFin: h.turno.horaFin,
+                              fecha,
+                            })
+                          : setSlotVacio({
+                              fecha,
+                              hora: h.hora,
+                              recursoId: s.recurso.id,
+                              recursoNombre: s.recurso.nombre,
+                            })
                       }
-                      disabled={!h.ocupado}
                       className={cn(
                         'text-left rounded-lg border p-3 text-sm transition-[transform,box-shadow] duration-150 ease-out',
                         h.ocupado
                           ? 'border-primary-tint bg-primary-tint/40 hover:-translate-y-0.5 hover:shadow-md cursor-pointer'
-                          : 'border-dashed border-border text-text-muted cursor-default'
+                          : 'border-dashed border-border text-text-muted hover:border-primary hover:text-text-primary cursor-pointer'
                       )}
                     >
                       <p className="font-medium">{h.hora}</p>
@@ -192,7 +223,7 @@ export function CalendarioClient({
                           <p className="text-xs text-text-secondary">${h.turno.precio}</p>
                         </>
                       ) : (
-                        <p className="text-xs">Libre</p>
+                        <p className="text-xs">+ Cargar turno</p>
                       )}
                     </button>
                   ))}
@@ -203,7 +234,8 @@ export function CalendarioClient({
         </div>
       )}
 
-      <CuentaTurnoModal turno={turnoAbierto} onClose={() => setTurnoAbierto(null)} />
+      <CuentaTurnoModal turno={turnoAbierto} productos={productos} onClose={() => setTurnoAbierto(null)} />
+      <NuevaCitaManualModal slot={slotVacio} servicios={servicios} onClose={() => setSlotVacio(null)} />
     </div>
   );
 }
