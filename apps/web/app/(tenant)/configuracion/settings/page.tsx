@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { ConfiguracionAgenteForm } from '@/components/negocio/configuracion-agente-form';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ConfiguracionSettingsPage() {
   const supabase = await createClient();
   const {

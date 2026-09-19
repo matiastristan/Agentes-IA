@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getDiaSemanaInfo } from '@/lib/turnos/get-dia-semana-info';
 import { CalendarioClient } from '@/components/turnos/calendario-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TurnosPage({
   searchParams,
 }: {

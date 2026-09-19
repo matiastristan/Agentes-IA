@@ -91,4 +91,17 @@ describe('buildSystemPrompt', () => {
     });
     expect(prompt).toContain('srv-123');
   });
+
+  it('incluye la fecha actual completa (para que el agente sepa situarse en el tiempo)', () => {
+    const prompt = buildSystemPrompt(baseNegocio, '2026-09-18');
+    expect(prompt).toContain('2026-09-18');
+    expect(prompt.toLowerCase()).toContain('viernes');
+  });
+
+  it('el mensaje de "hoy" cambia según la fecha que se le pase', () => {
+    const promptViernes = buildSystemPrompt(baseNegocio, '2026-09-18');
+    const promptLunes = buildSystemPrompt(baseNegocio, '2026-09-21');
+    expect(promptViernes.toLowerCase()).toContain('viernes');
+    expect(promptLunes.toLowerCase()).toContain('lunes');
+  });
 });

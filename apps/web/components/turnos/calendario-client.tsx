@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { buildCalendarioSlots } from '@/lib/turnos/build-calendario-slots';
 import { CuentaTurnoModal } from './cuenta-turno-modal';
 import { NuevaCitaManualModal } from './nueva-cita-manual-modal';
+import { colorParaSubtipo } from '@/lib/turnos/color-para-subtipo';
 import { cn } from '@/lib/utils';
 
 interface RecursoRaw {
@@ -212,7 +213,10 @@ export function CalendarioClient({
                       className={cn(
                         'text-left rounded-lg border p-3 text-sm transition-[transform,box-shadow] duration-150 ease-out',
                         h.ocupado
-                          ? 'border-primary-tint bg-primary-tint/40 hover:-translate-y-0.5 hover:shadow-md cursor-pointer'
+                          ? cn(
+                              'border-primary-tint bg-primary-tint/40 hover:-translate-y-0.5 hover:shadow-md cursor-pointer',
+                              colorParaSubtipo(s.recurso.subtipo)
+                            )
                           : 'border-dashed border-border text-text-muted hover:border-primary hover:text-text-primary cursor-pointer'
                       )}
                     >

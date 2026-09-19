@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NuevoComboForm } from '@/components/ventas/nuevo-combo-form';
 import { CombosList } from '@/components/ventas/combos-list';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CombosPage() {
   const supabase = await createClient();
   const {

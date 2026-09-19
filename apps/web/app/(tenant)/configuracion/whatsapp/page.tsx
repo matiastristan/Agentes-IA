@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ConectarWhatsAppButton } from '@/components/negocio/conectar-whatsapp-button';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ConfiguracionWhatsAppPage() {
   const supabase = await createClient();
   const {

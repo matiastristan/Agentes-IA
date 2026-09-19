@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NuevoServicioForm } from '@/components/turnos/nuevo-servicio-form';
 import { ServiciosTable } from '@/components/turnos/servicios-table';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ServiciosPage() {
   const supabase = await createClient();
   const {

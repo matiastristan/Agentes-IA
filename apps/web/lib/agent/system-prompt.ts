@@ -10,8 +10,20 @@ interface NegocioForPrompt {
 const TOOLS_BASE = ['consultar_disponibilidad', 'registrar_cita', 'obtener_catalogo'];
 const TOOLS_PRO = [...TOOLS_BASE, 'procesar_pago', 'aplicar_descuento'];
 
-export function buildSystemPrompt(negocio: NegocioForPrompt): string {
+const DIAS_SEMANA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
+function formatearFechaActual(fechaActual: string): string {
+  const date = new Date(`${fechaActual}T00:00:00Z`);
+  const diaSemana = DIAS_SEMANA[date.getUTCDay()];
+  return `Hoy es ${diaSemana} ${fechaActual}`;
+}
+
+export function buildSystemPrompt(
+  negocio: NegocioForPrompt,
+  fechaActual: string = new Date().toISOString().slice(0, 10)
+): string {
   const tono = negocio.tono_voz ?? 'profesional y amable';
+  const contextoFecha = formatearFechaActual(fechaActual);
 
   const horariosTexto = Object.entries(negocio.horarios)
     .map(([dia, horario]) => `${dia}: ${horario}`)
@@ -27,6 +39,8 @@ export function buildSystemPrompt(negocio: NegocioForPrompt): string {
   const tools = negocio.tier === 'pro' ? TOOLS_PRO : TOOLS_BASE;
 
   return `Sos el asistente virtual de ${negocio.nombre} en WhatsApp. Tu tono es ${tono}.
+
+${contextoFecha}. Usá esta fecha como referencia para calcular "hoy", "mañana", "el viernes que viene", etc. Nunca inventes ni asumas otra fecha — siempre calculá a partir de esta.
 
 Horarios de atención: ${horariosTexto || 'no configurados todavía'}.
 

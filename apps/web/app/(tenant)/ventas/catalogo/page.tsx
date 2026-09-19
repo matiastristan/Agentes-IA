@@ -3,6 +3,8 @@ import { extractDynamicColumns } from '@/lib/ventas/extract-dynamic-columns';
 import { ExcelUploader } from '@/components/ventas/excel-uploader';
 import { CatalogoTable } from '@/components/ventas/catalogo-table';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CatalogoPage() {
   const supabase = await createClient();
   const {

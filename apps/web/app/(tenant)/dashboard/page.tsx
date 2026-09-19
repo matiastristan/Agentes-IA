@@ -6,6 +6,8 @@ import { buildCalendarioSlots } from '@/lib/turnos/build-calendario-slots';
 import { buildKpisPorCancha } from '@/lib/turnos/build-kpis-por-cancha';
 import { buildFacturacionResumen } from '@/lib/turnos/build-facturacion-resumen';
 
+export const dynamic = 'force-dynamic';
+
 function inicioDeSemana(fecha: Date): string {
   const d = new Date(fecha);
   const dia = d.getUTCDay();

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 
 interface Servicio {
@@ -140,9 +141,9 @@ export function ServiciosTable({ servicios }: { servicios: Servicio[] }) {
                   onClick={() => eliminarServicio(s.id)}
                   disabled={guardando === s.id}
                   aria-label={`Eliminar ${s.nombre}`}
-                  className="text-text-muted hover:text-error text-sm"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-text-muted hover:text-error hover:bg-error-bg transition-colors duration-150"
                 >
-                  Eliminar
+                  <Trash2 className="h-4 w-4" aria-hidden strokeWidth={2} />
                 </button>
               </td>
             </tr>

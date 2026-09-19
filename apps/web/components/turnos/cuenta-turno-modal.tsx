@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 
@@ -37,6 +39,7 @@ export function CuentaTurnoModal({
   productos: Producto[];
   onClose: () => void;
 }) {
+  const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [consumos, setConsumos] = useState<Consumo[]>([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState('');
@@ -93,6 +96,38 @@ export function CuentaTurnoModal({
   async function eliminarConsumo(id: string) {
     await fetch(`/api/turnos/consumos/${id}`, { method: 'DELETE' });
     await cargarConsumos();
+  }
+
+  async function eliminarTurno() {
+    if (!turno || turno.tipo !== 'cita') return;
+    if (!confirm('¿Eliminar este turno?')) return;
+    setCerrando(true);
+    const res = await fetch(`/api/turnos/citas/${turno.id}`, { method: 'DELETE' });
+    setCerrando(false);
+    if (!res.ok) {
+      toast.error('No se pudo eliminar el turno');
+      return;
+    }
+    toast.success('Turno eliminado');
+    onClose();
+    router.refresh();
+  }
+
+  async function marcarNoShow() {
+    if (!turno || turno.tipo !== 'cita') return;
+    setCerrando(true);
+    const res = await fetch(`/api/turnos/citas/${turno.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ estado: 'no_show' }),
+    });
+    setCerrando(false);
+    if (!res.ok) {
+      toast.error('No se pudo marcar como no-show');
+      return;
+    }
+    toast.success('Marcado como no-show');
+    onClose();
+    router.refresh();
   }
 
   async function cerrarCuenta() {
@@ -156,9 +191,9 @@ export function CuentaTurnoModal({
             <button
               onClick={onClose}
               aria-label="Cerrar"
-              className="text-text-muted hover:text-text-primary text-xl leading-none"
+              className="flex h-11 w-11 items-center justify-center -mr-2 -mt-2 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tint transition-colors duration-150"
             >
-              ×
+              <X className="h-5 w-5" aria-hidden strokeWidth={2} />
             </button>
           </div>
 
@@ -175,9 +210,9 @@ export function CuentaTurnoModal({
                   <button
                     onClick={() => eliminarConsumo(c.id)}
                     aria-label={`Eliminar ${c.descripcion}`}
-                    className="text-text-muted hover:text-error text-xs"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-text-muted hover:text-error hover:bg-error-bg transition-colors duration-150"
                   >
-                    ✕
+                    <X className="h-3.5 w-3.5" aria-hidden strokeWidth={2} />
                   </button>
                 </div>
               </div>
@@ -209,6 +244,17 @@ export function CuentaTurnoModal({
             <p className="text-xs text-text-muted -mt-2 mb-4">
               Todavía no cargaste stock — hacelo en Configuración → Stock.
             </p>
+          )}
+
+          {turno.tipo === 'cita' && (
+            <div className="flex gap-2 mb-3">
+              <Button onClick={marcarNoShow} disabled={cerrando} variant="secondary" className="flex-1">
+                Marcar no-show
+              </Button>
+              <Button onClick={eliminarTurno} disabled={cerrando} variant="secondary" className="flex-1">
+                Eliminar turno
+              </Button>
+            </div>
           )}
 
           <Button onClick={cerrarCuenta} disabled={cerrando} className="w-full">

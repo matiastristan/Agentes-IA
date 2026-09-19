@@ -1,13 +1,28 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Home,
+  Calendar,
+  Repeat,
+  FileText,
+  Boxes,
+  Package,
+  Gift,
+  Settings,
+  Palette,
+  MessageSquare,
+  Flame,
+  LogOut,
+} from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 export function Sidebar({
@@ -23,22 +38,22 @@ export function Sidebar({
   const verticalItems: NavItem[] =
     tipoCrm === 'turnos'
       ? [
-          { href: '/turnos', label: 'Calendario', icon: '📅' },
-          { href: '/turnos/abonos', label: 'Mensualizados', icon: '🔁' },
-          { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
-          { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
+          { href: '/turnos', label: 'Calendario', icon: Calendar },
+          { href: '/turnos/abonos', label: 'Mensualizados', icon: Repeat },
+          { href: '/turnos/servicios', label: 'Servicios', icon: FileText },
+          { href: '/turnos/recursos', label: 'Recursos', icon: Boxes },
         ]
       : [
-          { href: '/ventas/catalogo', label: 'Catálogo', icon: '📦' },
-          { href: '/ventas/combos', label: 'Combos', icon: '🎁' },
+          { href: '/ventas/catalogo', label: 'Catálogo', icon: Package },
+          { href: '/ventas/combos', label: 'Combos', icon: Gift },
         ];
 
   const configuracionItems: NavItem[] = [
-    ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: '📦' }] : []),
-    { href: '/configuracion/settings', label: 'Ajustes del agente', icon: '⚙️' },
-    { href: '/configuracion/apariencia', label: 'Apariencia', icon: '🎨' },
-    { href: '/configuracion/test-chat', label: 'Probar agente', icon: '💬' },
-    { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
+    ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: Package }] : []),
+    { href: '/configuracion/settings', label: 'Ajustes del agente', icon: Settings },
+    { href: '/configuracion/apariencia', label: 'Apariencia', icon: Palette },
+    { href: '/configuracion/test-chat', label: 'Probar agente', icon: MessageSquare },
+    { href: '/configuracion/alertas', label: 'Alertas', icon: Flame },
   ];
 
   async function handleLogout() {
@@ -50,6 +65,7 @@ export function Sidebar({
 
   function renderLink(item: NavItem) {
     const active = pathname === item.href;
+    const Icon = item.icon;
     return (
       <a
         key={item.href}
@@ -62,7 +78,7 @@ export function Sidebar({
             : 'text-text-secondary hover:bg-bg-tint hover:text-text-primary'
         )}
       >
-        <span aria-hidden>{item.icon}</span>
+        <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden strokeWidth={2} />
         {item.label}
       </a>
     );
@@ -76,7 +92,7 @@ export function Sidebar({
       </div>
 
       <nav className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
-        {renderLink({ href: '/dashboard', label: 'Inicio', icon: '🏠' })}
+        {renderLink({ href: '/dashboard', label: 'Inicio', icon: Home })}
         {verticalItems.map(renderLink)}
 
         <p className="text-xs font-semibold text-text-muted uppercase tracking-wide px-3 mt-4 mb-1">
@@ -94,7 +110,7 @@ export function Sidebar({
             'transition-[background-color,color] duration-150 ease-out'
           )}
         >
-          <span aria-hidden>🚪</span>
+          <LogOut className="h-[18px] w-[18px] shrink-0" aria-hidden strokeWidth={2} />
           Cerrar sesión
         </button>
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,9 +98,9 @@ export function NuevaCitaManualModal({
             <button
               onClick={onClose}
               aria-label="Cerrar"
-              className="text-text-muted hover:text-text-primary text-xl leading-none"
+              className="flex h-11 w-11 items-center justify-center -mr-2 -mt-2 rounded-md text-text-muted hover:text-text-primary hover:bg-bg-tint transition-colors duration-150"
             >
-              ×
+              <X className="h-5 w-5" aria-hidden strokeWidth={2} />
             </button>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import { Toggle } from '@/components/ui/toggle';
 
 const DIAS_LABEL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -72,9 +73,10 @@ export function AbonosTable({ abonos }: { abonos: Abono[] }) {
               <button
                 onClick={() => eliminar(a.id)}
                 disabled={guardando === a.id}
-                className="text-text-muted hover:text-error text-sm"
+                aria-label={`Eliminar ${a.cliente_nombre}`}
+                className="flex h-9 w-9 items-center justify-center rounded-md text-text-muted hover:text-error hover:bg-error-bg transition-colors duration-150"
               >
-                Eliminar
+                <Trash2 className="h-4 w-4" aria-hidden strokeWidth={2} />
               </button>
             </td>
           </tr>

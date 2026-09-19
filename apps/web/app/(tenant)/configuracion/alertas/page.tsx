@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmailAlertasForm } from '@/components/negocio/email-alertas-form';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ConfiguracionAlertasPage() {
   const supabase = await createClient();
   const {

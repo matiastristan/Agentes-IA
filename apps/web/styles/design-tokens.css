@@ -19,19 +19,19 @@
   --color-background: var(--gray-50);
   --color-foreground: var(--gray-900);
   --color-card: #FFFFFF;
-  --color-primary: var(--palette-primary-500);
-  --color-primary-hover: var(--palette-primary-600);
-  --color-primary-active: var(--palette-primary-700);
   --color-primary-foreground: #FFFFFF;
-  --color-primary-tint: var(--palette-primary-50);
-  --color-secondary: var(--palette-secondary-500);
-  --color-accent: var(--palette-accent-500);
-  --color-bg-tint: var(--palette-bg-tint);
+  --color-primary: #007AFF;
+  --color-primary-hover: #0062CC;
+  --color-primary-active: #1D1D1F;
+  --color-primary-tint: #E8F2FF;
+  --color-secondary: #AAAAAA;
+  --color-accent: #1D1D1F;
+  --color-bg-tint: #F5F5F7;
+  --color-ring: #007AFF;
   --color-text-primary: var(--gray-900);
   --color-text-secondary: var(--gray-500);
   --color-text-muted: var(--gray-400);
   --color-border: var(--gray-200);
-  --color-ring: var(--color-primary);
   --color-success: var(--green-600); --color-success-bg: var(--green-50);
   --color-warning: var(--amber-600); --color-warning-bg: var(--amber-50);
   --color-error: var(--red-600); --color-error-bg: var(--red-50);
@@ -41,31 +41,34 @@
 }
 
 [data-palette="apple"] {
-  --palette-primary-50: #E8F2FF;
-  --palette-primary-500: #007AFF;
-  --palette-primary-600: #0062CC;
-  --palette-primary-700: #1D1D1F;
-  --palette-secondary-500: #AAAAAA;
-  --palette-accent-500: #1D1D1F;
-  --palette-bg-tint: #F5F5F7;
+  --color-primary: #007AFF;
+  --color-primary-hover: #0062CC;
+  --color-primary-active: #1D1D1F;
+  --color-primary-tint: #E8F2FF;
+  --color-secondary: #AAAAAA;
+  --color-accent: #1D1D1F;
+  --color-bg-tint: #F5F5F7;
+  --color-ring: #007AFF;
 }
 
 [data-palette="notion"] {
-  --palette-primary-50: #FBFAF8;
-  --palette-primary-500: #D9D0C7;
-  --palette-primary-600: #BFB2A3;
-  --palette-primary-700: #373737;
-  --palette-secondary-500: #373737;
-  --palette-accent-500: #E07A5F;
-  --palette-bg-tint: #F7F6F3;
+  --color-primary: #D9D0C7;
+  --color-primary-hover: #BFB2A3;
+  --color-primary-active: #373737;
+  --color-primary-tint: #FBFAF8;
+  --color-secondary: #373737;
+  --color-accent: #E07A5F;
+  --color-bg-tint: #F7F6F3;
+  --color-ring: #D9D0C7;
 }
 
 [data-palette="spotify"] {
-  --palette-primary-50: #E8FBF0;
-  --palette-primary-500: #1DB954;
-  --palette-primary-600: #188F42;
-  --palette-primary-700: #0D2818;
-  --palette-secondary-500: #D1FADF;
-  --palette-accent-500: #D1FADF;
-  --palette-bg-tint: #121212;
+  --color-primary: #1DB954;
+  --color-primary-hover: #188F42;
+  --color-primary-active: #0D2818;
+  --color-primary-tint: #E8FBF0;
+  --color-secondary: #D1FADF;
+  --color-accent: #D1FADF;
+  --color-bg-tint: #121212;
+  --color-ring: #1DB954;
 }

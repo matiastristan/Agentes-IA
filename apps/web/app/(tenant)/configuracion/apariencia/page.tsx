@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { AparienciaForm } from '@/components/negocio/apariencia-form';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AparienciaPage() {
   const supabase = await createClient();
   const {

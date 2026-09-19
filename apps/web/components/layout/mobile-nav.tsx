@@ -1,12 +1,26 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Home,
+  Calendar,
+  Repeat,
+  FileText,
+  Boxes,
+  Package,
+  Gift,
+  Settings,
+  Palette,
+  MessageSquare,
+  Flame,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
@@ -15,30 +29,31 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
   const verticalItems: NavItem[] =
     tipoCrm === 'turnos'
       ? [
-          { href: '/turnos', label: 'Calendario', icon: '📅' },
-          { href: '/turnos/abonos', label: 'Mensualizados', icon: '🔁' },
-          { href: '/turnos/servicios', label: 'Servicios', icon: '🧾' },
-          { href: '/turnos/recursos', label: 'Recursos', icon: '🧩' },
+          { href: '/turnos', label: 'Calendario', icon: Calendar },
+          { href: '/turnos/abonos', label: 'Mensualizados', icon: Repeat },
+          { href: '/turnos/servicios', label: 'Servicios', icon: FileText },
+          { href: '/turnos/recursos', label: 'Recursos', icon: Boxes },
         ]
       : [
-          { href: '/ventas/catalogo', label: 'Catálogo', icon: '📦' },
-          { href: '/ventas/combos', label: 'Combos', icon: '🎁' },
+          { href: '/ventas/catalogo', label: 'Catálogo', icon: Package },
+          { href: '/ventas/combos', label: 'Combos', icon: Gift },
         ];
 
   const items: NavItem[] = [
-    { href: '/dashboard', label: 'Inicio', icon: '🏠' },
+    { href: '/dashboard', label: 'Inicio', icon: Home },
     ...verticalItems,
-    ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: '📦' }] : []),
-    { href: '/configuracion/settings', label: 'Ajustes', icon: '⚙️' },
-    { href: '/configuracion/apariencia', label: 'Apariencia', icon: '🎨' },
-    { href: '/configuracion/test-chat', label: 'Probar agente', icon: '💬' },
-    { href: '/configuracion/alertas', label: 'Alertas', icon: '🔥' },
+    ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: Package }] : []),
+    { href: '/configuracion/settings', label: 'Ajustes', icon: Settings },
+    { href: '/configuracion/apariencia', label: 'Apariencia', icon: Palette },
+    { href: '/configuracion/test-chat', label: 'Probar agente', icon: MessageSquare },
+    { href: '/configuracion/alertas', label: 'Alertas', icon: Flame },
   ];
 
   return (
     <nav className="md:hidden sticky top-0 z-10 flex gap-1 overflow-x-auto border-b border-border bg-card px-3 py-2">
       {items.map((item) => {
         const active = pathname === item.href;
+        const Icon = item.icon;
         return (
           <a
             key={item.href}
@@ -49,7 +64,7 @@ export function MobileNav({ tipoCrm }: { tipoCrm: 'ventas' | 'turnos' }) {
               active ? 'bg-primary-tint text-primary' : 'text-text-secondary'
             )}
           >
-            <span aria-hidden>{item.icon}</span>
+            <Icon className="h-4 w-4 shrink-0" aria-hidden strokeWidth={2} />
             {item.label}
           </a>
         );

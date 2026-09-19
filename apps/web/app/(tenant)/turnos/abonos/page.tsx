@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NuevoAbonoForm } from '@/components/turnos/nuevo-abono-form';
 import { AbonosTable } from '@/components/turnos/abonos-table';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AbonosPage() {
   const supabase = await createClient();
   const {

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { checkReminderGuardrail } from '@/lib/turnos/reminder-guardrail';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ConfiguracionTurnosPage() {
   const supabase = await createClient();
   const {

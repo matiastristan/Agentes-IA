@@ -1,4 +1,5 @@
 import { buildSystemPrompt } from './system-prompt';
+import { getFechaArgentina } from './get-fecha-argentina';
 import { getToolsForTier } from './tools';
 import { categorizeTemperatura } from './categorize-temperature';
 import { shouldTriggerLeadAlert } from '../notifications/should-trigger-lead-alert';
@@ -182,7 +183,7 @@ export async function handleIncomingMessage(
     return { handled: false };
   }
 
-  const systemPrompt = buildSystemPrompt(negocio);
+  const systemPrompt = buildSystemPrompt(negocio, getFechaArgentina());
   const tools = getToolsForTier(negocio.tier);
 
   const messages = [
