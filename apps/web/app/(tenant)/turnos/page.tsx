@@ -18,7 +18,7 @@ export default async function TurnosPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: negocio }, { data: recursos }, { data: citasRaw }, { data: abonos }, { data: productos }, { data: servicios }] =
+  const [{ data: negocio }, { data: recursos }, { data: citasRaw }, { data: abonos }, { data: productos }, { data: servicios }, { data: combos }] =
     await Promise.all([
       supabase.from('negocio').select('horarios').eq('tenant_id', user!.id).single(),
       supabase.from('recursos').select('id, nombre, subtipo').eq('tenant_id', user!.id).eq('activo', true),
@@ -39,6 +39,11 @@ export default async function TurnosPage({
         .eq('tenant_id', user!.id)
         .eq('activo', true),
       supabase.from('servicios').select('id, nombre, precio').eq('tenant_id', user!.id).eq('activo', true),
+      supabase
+        .from('combos')
+        .select('id, nombre, precio')
+        .eq('tenant_id', user!.id)
+        .eq('activo', true),
     ]);
 
   const horarios = (negocio?.horarios as Record<string, string>) ?? {};
@@ -71,6 +76,7 @@ export default async function TurnosPage({
         citas={citas as never}
         abonos={abonos ?? []}
         productos={productos ?? []}
+        combos={combos ?? []}
         servicios={servicios ?? []}
         subtipoActual={cancha ?? null}
       />

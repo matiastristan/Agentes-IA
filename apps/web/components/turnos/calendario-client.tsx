@@ -65,6 +65,12 @@ interface SlotVacio {
   recursoNombre: string;
 }
 
+interface ComboRaw {
+  id: string;
+  nombre: string;
+  precio: number;
+}
+
 export function CalendarioClient({
   fecha,
   diaSemana,
@@ -73,6 +79,7 @@ export function CalendarioClient({
   citas,
   abonos,
   productos,
+  combos,
   servicios,
   subtipoActual,
 }: {
@@ -83,6 +90,7 @@ export function CalendarioClient({
   citas: CitaRaw[];
   abonos: AbonoRaw[];
   productos: ProductoRaw[];
+  combos: ComboRaw[];
   servicios: ServicioOption[];
   subtipoActual: string | null;
 }) {
@@ -238,7 +246,12 @@ export function CalendarioClient({
         </div>
       )}
 
-      <CuentaTurnoModal turno={turnoAbierto} productos={productos} onClose={() => setTurnoAbierto(null)} />
+      <CuentaTurnoModal
+        turno={turnoAbierto}
+        productos={productos}
+        combos={combos}
+        onClose={() => setTurnoAbierto(null)}
+      />
       <NuevaCitaManualModal slot={slotVacio} servicios={servicios} onClose={() => setSlotVacio(null)} />
     </div>
   );

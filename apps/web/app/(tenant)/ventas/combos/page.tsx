@@ -11,7 +11,12 @@ export default async function CombosPage() {
   } = await supabase.auth.getUser();
 
   const [{ data: productos }, { data: combos }] = await Promise.all([
-    supabase.from('productos').select('id, nombre').eq('tenant_id', user!.id).eq('activo', true),
+    supabase
+      .from('productos')
+      .select('id, nombre, precio, rubro, atributos')
+      .eq('tenant_id', user!.id)
+      .eq('activo', true)
+      .order('nombre'),
     supabase.from('combos').select('*').eq('tenant_id', user!.id).order('created_at', { ascending: false }),
   ]);
 
@@ -33,7 +38,7 @@ export default async function CombosPage() {
         </div>
       ) : (
         <div className="mt-6 animate-fade-slide-in">
-          <CombosList combos={lista} />
+          <CombosList combos={lista as never} productos={(productos ?? []) as never} />
         </div>
       )}
     </main>

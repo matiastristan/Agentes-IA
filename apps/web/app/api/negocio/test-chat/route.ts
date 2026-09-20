@@ -35,7 +35,17 @@ export async function POST(request: NextRequest) {
           user.id,
           data.tipo_crm as 'ventas' | 'turnos'
         );
-        return { ...data, catalogo, instruccionesAdicionales: data.instrucciones_adicionales } as never;
+        const { data: recursos } = await supabase
+          .from('recursos')
+          .select('nombre, subtipo')
+          .eq('tenant_id', user.id)
+          .eq('activo', true);
+        return {
+          ...data,
+          catalogo,
+          recursos: recursos ?? [],
+          instruccionesAdicionales: data.instrucciones_adicionales,
+        } as never;
       },
       findOrCreateConversation: async (tenantId, phoneFrom) => {
         const { data: existing } = await supabase

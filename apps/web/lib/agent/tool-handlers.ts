@@ -17,14 +17,70 @@ async function consultarDisponibilidad(
   args: { fecha: string },
   ctx: ToolContext
 ): Promise<ToolResult> {
-  const { data, error } = await ctx.supabase
+  const { data: citas, error: errorCitas } = await ctx.supabase
     .from('citas')
     .select('hora, estado')
     .eq('tenant_id', ctx.tenantId)
     .eq('fecha', args.fecha);
 
-  if (error) return { error: 'No se pudo consultar la disponibilidad' };
-  return { data };
+  if (errorCitas) return { error: 'No se pudo consultar la disponibilidad' };
+
+  const diaSemana = new Date(`${args.fecha}T00:00:00Z`).getUTCDay();
+
+  const { data: abonos, error: errorAbonos } = await ctx.supabase
+    .from('abonos')
+    .select('hora_inicio, hora_fin, cliente_nombre')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('dia_semana', diaSemana)
+    .eq('activo', true);
+
+  if (errorAbonos) return { error: 'No se pudo consultar la disponibilidad' };
+
+  const citasFormato = (citas ?? []).map((c: { hora: string; estado: string }) => ({
+    tipo: 'cita',
+    hora: c.hora,
+    estado: c.estado,
+  }));
+
+  // Los abonos son clientes mensualizados: ocupan ese horario TODAS las semanas
+  // ese día, aunque no haya una fila en `citas` para esa fecha puntual.
+  const abonosFormato = (abonos ?? []).map((a: { hora_inicio: string }) => ({
+    tipo: 'abono',
+    hora: a.hora_inicio,
+    estado: 'ocupado_por_cliente_mensualizado',
+  }));
+
+  return { data: [...citasFormato, ...abonosFormato] };
+}
+
+async function cancelarCita(
+  args: { fecha: string; hora?: string },
+  ctx: ToolContext
+): Promise<ToolResult> {
+  let query = ctx.supabase
+    .from('citas')
+    .select('id')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('customer_id', ctx.phone)
+    .eq('fecha', args.fecha)
+    .neq('estado', 'cancelada');
+
+  if (args.hora) query = query.eq('hora', args.hora);
+
+  const { data: cita } = await query.single();
+
+  if (!cita) {
+    return { error: 'No encontré ningún turno tuyo para esa fecha' };
+  }
+
+  const { error } = await ctx.supabase
+    .from('citas')
+    .update({ estado: 'cancelada' })
+    .eq('id', cita.id)
+    .eq('tenant_id', ctx.tenantId);
+
+  if (error) return { error: 'No se pudo cancelar el turno' };
+  return { data: { cancelado: true } };
 }
 
 async function registrarCita(
@@ -218,6 +274,8 @@ export async function executeToolCall(
   switch (toolName) {
     case 'consultar_disponibilidad':
       return consultarDisponibilidad(args as { fecha: string }, ctx);
+    case 'cancelar_cita':
+      return cancelarCita(args as { fecha: string; hora?: string }, ctx);
     case 'registrar_cita':
       return registrarCita(
         args as { customer_name: string; fecha: string; hora: string; servicio_id?: string },

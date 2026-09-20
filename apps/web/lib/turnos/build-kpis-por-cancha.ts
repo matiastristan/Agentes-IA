@@ -17,6 +17,7 @@ interface CitaConEstado {
 interface KpiCancha {
   recursoId: string;
   recursoNombre: string;
+  recursoSubtipo: string | null;
   turnosTotal: number;
   turnosDisponibles: number;
   noShow: number;
@@ -29,6 +30,7 @@ export function buildKpisPorCancha(
   return slots.map((s) => ({
     recursoId: s.recurso.id,
     recursoNombre: s.recurso.nombre,
+    recursoSubtipo: s.recurso.subtipo,
     turnosTotal: s.horas.filter((h) => h.ocupado).length,
     turnosDisponibles: s.horas.filter((h) => !h.ocupado).length,
     noShow: citasDelDia.filter((c) => c.recurso_id === s.recurso.id && c.estado === 'no_show').length,

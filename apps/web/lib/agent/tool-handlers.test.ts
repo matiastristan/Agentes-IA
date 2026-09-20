@@ -42,6 +42,11 @@ function createTableAwareMock(responses: Record<string, { data: unknown; error: 
       calls.push({ method: 'insert', args });
       return chain;
     },
+    update: (...args: unknown[]) => {
+      currentKey = `${currentKey}:update`;
+      calls.push({ method: 'update', args });
+      return chain;
+    },
     eq: (...args: unknown[]) => (calls.push({ method: 'eq', args }), chain),
     neq: (...args: unknown[]) => (calls.push({ method: 'neq', args }), chain),
     single: () => {
@@ -65,6 +70,60 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     });
     const eqCalls = calls.filter((c) => c.method === 'eq');
     expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
+  });
+
+  it('consultar_disponibilidad también revisa los abonos (mensualizados) de ese día de la semana', async () => {
+    const { client } = createTableAwareMock({
+      'citas:select': { data: [], error: null },
+      'abonos:select': {
+        data: [{ hora_inicio: '18:00:00', hora_fin: '20:00:00', cliente_nombre: 'Matías' }],
+        error: null,
+      },
+    });
+
+    // Viernes 25/09/2026
+    const result = await executeToolCall('consultar_disponibilidad', { fecha: '2026-09-25' }, {
+      tenantId: TENANT_A,
+      tier: 'base',
+      supabase: client,
+      phone: '5491100000000',
+    });
+
+    const data = result.data as Array<{ tipo: string; hora: string }>;
+    expect(data.some((d) => d.tipo === 'abono' && d.hora === '18:00:00')).toBe(true);
+  });
+
+  it('cancelar_cita cancela el turno del cliente que escribe (matcheado por su teléfono), no el de otro', async () => {
+    const { client, calls } = createTableAwareMock({
+      'citas:select': { data: { id: 'cita-1' }, error: null },
+      'citas:update': { data: null, error: null },
+    });
+
+    const result = await executeToolCall(
+      'cancelar_cita',
+      { fecha: '2026-09-25' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+
+    expect(result.error).toBeUndefined();
+    const eqCalls = calls.filter((c) => c.method === 'eq');
+    expect(eqCalls.some((c) => c.args[0] === 'customer_id' && c.args[1] === '5491100000000')).toBe(
+      true
+    );
+  });
+
+  it('cancelar_cita devuelve error si no encuentra ningún turno de ese cliente esa fecha', async () => {
+    const { client } = createTableAwareMock({
+      'citas:select': { data: null, error: null },
+    });
+
+    const result = await executeToolCall(
+      'cancelar_cita',
+      { fecha: '2026-09-25' },
+      { tenantId: TENANT_A, tier: 'base', supabase: client, phone: '5491100000000' }
+    );
+
+    expect(result.error).toBeDefined();
   });
 
   it('obtener_catalogo filtra explícitamente por tenant_id', async () => {

@@ -18,20 +18,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Datos inválidos', errors }, { status: 400 });
   }
 
-  const { data, error } = await supabase
+  const { data: servicio, error } = await supabase
     .from('servicios')
     .insert({
       tenant_id: user.id,
       nombre: body.nombre,
       duracion_minutos: body.duracionMinutos,
       precio: body.precio,
+      subtipo: body.subtipo || null,
     })
     .select()
     .single();
 
-  if (error) {
+  if (error || !servicio) {
     return NextResponse.json({ error: 'No se pudo crear el servicio' }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, servicio: data });
+  // Auto-crear un recurso "espejo" para que aparezca en el calendario como columna clickeable.
+  // Un servicio = una cancha/espacio bookeable — el usuario los piensa como la misma cosa.
+  await supabase.from('recursos').insert({
+    tenant_id: user.id,
+    nombre: body.nombre,
+    subtipo: body.subtipo || null,
+    activo: true,
+    servicio_id: servicio.id,
+  });
+
+  return NextResponse.json({ ok: true, servicio });
 }

@@ -6,8 +6,8 @@
   },
   "palettes": {
     "apple": { "primary50": "#E8F2FF", "primary500": "#007AFF", "primary600": "#0062CC", "primary700": "#1D1D1F", "secondary500": "#AAAAAA", "accent500": "#1D1D1F", "bgTint": "#F5F5F7" },
-    "notion": { "primary50": "#FBFAF8", "primary500": "#D9D0C7", "primary600": "#BFB2A3", "primary700": "#373737", "secondary500": "#373737", "accent500": "#E07A5F", "bgTint": "#F7F6F3" },
-    "spotify": { "primary50": "#E8FBF0", "primary500": "#1DB954", "primary600": "#188F42", "primary700": "#0D2818", "secondary500": "#D1FADF", "accent500": "#D1FADF", "bgTint": "#121212" }
+    "notion": { "primary50": "#FBEEE9", "primary500": "#E07A5F", "primary600": "#C55A3B", "primary700": "#373737", "secondary500": "#D9D0C7", "accent500": "#373737", "bgTint": "#F7F6F3" },
+    "spotify": { "primary50": "#D1FADF", "primary500": "#1DB954", "primary600": "#149140", "primary700": "#0D2818", "secondary500": "#D1FADF", "accent500": "#121212", "bgTint": "#F0FDF4" }
   },
   "state": {
     "red500": "#EF4444", "red600": "#DC2626", "red50": "#FEF2F2",

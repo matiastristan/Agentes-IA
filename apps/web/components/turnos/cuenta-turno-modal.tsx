@@ -19,6 +19,12 @@ interface Producto {
   stock: number;
 }
 
+interface Combo {
+  id: string;
+  nombre: string;
+  precio: number;
+}
+
 interface TurnoAbierto {
   tipo: 'cita' | 'abono';
   id: string;
@@ -33,16 +39,18 @@ interface TurnoAbierto {
 export function CuentaTurnoModal({
   turno,
   productos,
+  combos,
   onClose,
 }: {
   turno: TurnoAbierto | null;
   productos: Producto[];
+  combos: Combo[];
   onClose: () => void;
 }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [consumos, setConsumos] = useState<Consumo[]>([]);
-  const [productoSeleccionado, setProductoSeleccionado] = useState('');
+  const [itemSeleccionado, setItemSeleccionado] = useState('');
   const [loading, setLoading] = useState(false);
   const [cerrando, setCerrando] = useState(false);
 
@@ -71,9 +79,29 @@ export function CuentaTurnoModal({
 
   async function agregarConsumo(e: React.FormEvent) {
     e.preventDefault();
-    if (!turno || !productoSeleccionado) return;
-    const producto = productos.find((p) => p.id === productoSeleccionado);
-    if (!producto) return;
+    if (!turno || !itemSeleccionado) return;
+
+    // El valor del select viene con prefijo para distinguir producto ("p:xxxx") de combo ("c:xxxx")
+    const [tipo, id] = itemSeleccionado.split(':');
+    let descripcion = '';
+    let precio = 0;
+    let productoId: string | undefined;
+
+    if (tipo === 'p') {
+      const producto = productos.find((p) => p.id === id);
+      if (!producto) return;
+      descripcion = producto.nombre;
+      precio = producto.precio ?? 0;
+      productoId = producto.id;
+    } else if (tipo === 'c') {
+      const combo = combos.find((c) => c.id === id);
+      if (!combo) return;
+      descripcion = `Combo: ${combo.nombre}`;
+      precio = combo.precio;
+    } else {
+      return;
+    }
+
     setLoading(true);
 
     await fetch('/api/turnos/consumos', {
@@ -82,13 +110,13 @@ export function CuentaTurnoModal({
         citaId: turno.tipo === 'cita' ? turno.id : undefined,
         abonoId: turno.tipo === 'abono' ? turno.id : undefined,
         fecha: turno.fecha,
-        descripcion: producto.nombre,
-        precio: producto.precio ?? 0,
-        productoId: producto.id,
+        descripcion,
+        precio,
+        productoId,
       }),
     });
 
-    setProductoSeleccionado('');
+    setItemSeleccionado('');
     setLoading(false);
     await cargarConsumos();
   }
@@ -225,24 +253,37 @@ export function CuentaTurnoModal({
 
           <form onSubmit={agregarConsumo} className="flex gap-2 mb-4">
             <select
-              value={productoSeleccionado}
-              onChange={(e) => setProductoSeleccionado(e.target.value)}
+              value={itemSeleccionado}
+              onChange={(e) => setItemSeleccionado(e.target.value)}
               className="flex-1 h-10 rounded-md border border-border px-3 bg-background text-sm"
             >
-              <option value="">Elegí del stock...</option>
-              {productos.map((p) => (
-                <option key={p.id} value={p.id} disabled={p.stock <= 0}>
-                  {p.nombre} — ${p.precio ?? 0} {p.stock <= 0 ? '(sin stock)' : `(${p.stock} disp.)`}
-                </option>
-              ))}
+              <option value="">Elegí un consumo...</option>
+              {combos.length > 0 && (
+                <optgroup label="Combos y promociones">
+                  {combos.map((c) => (
+                    <option key={c.id} value={`c:${c.id}`}>
+                      {c.nombre} — ${c.precio}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {productos.length > 0 && (
+                <optgroup label="Productos del stock">
+                  {productos.map((p) => (
+                    <option key={p.id} value={`p:${p.id}`} disabled={p.stock <= 0}>
+                      {p.nombre} — ${p.precio ?? 0} {p.stock <= 0 ? '(sin stock)' : `(${p.stock} disp.)`}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
-            <Button type="submit" variant="secondary" disabled={loading || !productoSeleccionado}>
+            <Button type="submit" variant="secondary" disabled={loading || !itemSeleccionado}>
               +
             </Button>
           </form>
-          {productos.length === 0 && (
+          {productos.length === 0 && combos.length === 0 && (
             <p className="text-xs text-text-muted -mt-2 mb-4">
-              Todavía no cargaste stock — hacelo en Configuración → Stock.
+              Todavía no cargaste stock ni armaste combos — hacelo en Configuración → Stock y en Combos.
             </p>
           )}
 

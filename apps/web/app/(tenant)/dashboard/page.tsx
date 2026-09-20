@@ -5,6 +5,8 @@ import { getDiaSemanaInfo } from '@/lib/turnos/get-dia-semana-info';
 import { buildCalendarioSlots } from '@/lib/turnos/build-calendario-slots';
 import { buildKpisPorCancha } from '@/lib/turnos/build-kpis-por-cancha';
 import { buildFacturacionResumen } from '@/lib/turnos/build-facturacion-resumen';
+import { colorParaSubtipo } from '@/lib/turnos/color-para-subtipo';
+import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,12 +61,12 @@ export default async function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { label: 'Mensajes hoy', value: 0 },
-            { label: 'Conversiones', value: 0 },
-            { label: 'Clientes nuevos', value: 0 },
+            { label: 'Mensajes hoy', value: 0, accent: 'primary' as const },
+            { label: 'Conversiones', value: 0, accent: 'frio' as const },
+            { label: 'Clientes nuevos', value: 0, accent: 'moderado' as const },
           ].map((kpi, i) => (
             <div key={kpi.label} className="animate-fade-slide-in" style={{ animationDelay: `${i * 60}ms` }}>
-              <KPICard label={kpi.label} value={kpi.value} />
+              <KPICard label={kpi.label} value={kpi.value} accent={kpi.accent} />
             </div>
           ))}
         </div>
@@ -181,11 +183,16 @@ async function DashboardTurnos({ tenantId }: { tenantId: string }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {kpisPorCancha.map((k, i) => (
           <div key={k.recursoId} className="animate-fade-slide-in" style={{ animationDelay: `${i * 60}ms` }}>
-            <Card className="p-5">
-              <p className="text-sm font-medium text-text-primary mb-3">{k.recursoNombre}</p>
+            <Card
+              className={cn(
+                'p-5 border-l-4 transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md',
+                colorParaSubtipo(k.recursoSubtipo)
+              )}
+            >
+              <p className="text-sm font-semibold text-text-primary mb-3">{k.recursoNombre}</p>
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">Turnos</span>
-                <span className="font-semibold">{k.turnosTotal}</span>
+                <span className="font-semibold text-primary">{k.turnosTotal}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-text-secondary">Disponibles</span>
@@ -203,12 +210,12 @@ async function DashboardTurnos({ tenantId }: { tenantId: string }) {
       <h2 className="text-lg font-medium text-text-primary mb-3 animate-fade-slide-in">Facturación</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {[
-          { label: 'Hoy', value: `$${resumenHoy.total}` },
-          { label: 'Esta semana', value: `$${resumenSemana.total}` },
-          { label: 'Este mes', value: `$${resumenMes.total}` },
+          { label: 'Hoy', value: `$${resumenHoy.total}`, accent: 'caliente' as const },
+          { label: 'Esta semana', value: `$${resumenSemana.total}`, accent: 'moderado' as const },
+          { label: 'Este mes', value: `$${resumenMes.total}`, accent: 'primary' as const },
         ].map((kpi, i) => (
           <div key={kpi.label} className="animate-fade-slide-in" style={{ animationDelay: `${i * 60}ms` }}>
-            <KPICard label={kpi.label} value={kpi.value} />
+            <KPICard label={kpi.label} value={kpi.value} accent={kpi.accent} />
           </div>
         ))}
       </div>
@@ -262,10 +269,10 @@ async function DashboardTurnos({ tenantId }: { tenantId: string }) {
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="animate-fade-slide-in">
-          <KPICard label="Tasa de ocupación hoy" value={`${tasaOcupacionHoy}%`} />
+          <KPICard label="Tasa de ocupación hoy" value={`${tasaOcupacionHoy}%`} accent="frio" />
         </div>
         <div className="animate-fade-slide-in" style={{ animationDelay: '60ms' }}>
-          <KPICard label="Ticket promedio (este mes)" value={`$${ticketPromedio}`} />
+          <KPICard label="Ticket promedio (este mes)" value={`$${ticketPromedio}`} accent="caliente" />
         </div>
       </div>
     </>

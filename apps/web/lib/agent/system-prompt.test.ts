@@ -104,4 +104,51 @@ describe('buildSystemPrompt', () => {
     expect(promptViernes.toLowerCase()).toContain('viernes');
     expect(promptLunes.toLowerCase()).toContain('lunes');
   });
+
+  it('aclara que un resultado de tipo abono también cuenta como horario ocupado', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    expect(prompt.toLowerCase()).toContain('abono');
+    expect(prompt.toLowerCase()).toContain('mensualizado');
+  });
+
+  it('incluye la lista real de recursos (canchas) cuando está cargada', () => {
+    const prompt = buildSystemPrompt({
+      ...baseNegocio,
+      recursos: [{ nombre: 'Cancha Padel 1', subtipo: 'padel' }],
+    });
+    expect(prompt).toContain('Cancha Padel 1');
+  });
+
+  it('con un solo recurso cargado, deja explícito que es el único (para no inventar una segunda opción)', () => {
+    const prompt = buildSystemPrompt({
+      ...baseNegocio,
+      recursos: [{ nombre: 'Cancha Padel 1', subtipo: 'padel' }],
+    });
+    expect(prompt.toLowerCase()).toContain('único');
+  });
+
+  it('sin recursos cargados, no rompe y avisa que no hay ninguno', () => {
+    const prompt = buildSystemPrompt({ ...baseNegocio, recursos: [] });
+    expect(prompt).not.toContain('undefined');
+  });
+
+  it('incluye una tabla explícita de los próximos días con su fecha y día de la semana (para no tener que calcular "el viernes que viene" mentalmente)', () => {
+    const prompt = buildSystemPrompt(baseNegocio, '2026-09-19'); // sábado
+    // El próximo viernes desde el sábado 19/9 tiene que estar listado como 2026-09-25
+    expect(prompt).toContain('2026-09-25');
+    expect(prompt.toLowerCase()).toMatch(/2026-09-25.*viernes|viernes.*2026-09-25/);
+  });
+
+  it('las 3 configuraciones que el usuario edita en Ajustes del agente aparecen en el prompt final (tono, horarios, instrucciones adicionales)', () => {
+    const prompt = buildSystemPrompt({
+      ...baseNegocio,
+      tono_voz: 'divertido y descontracturado',
+      horarios: { viernes: '10:00-23:00' },
+      instruccionesAdicionales:
+        'Nunca ofrezcas descuentos sin autorización. Siempre confirmá el turno con el nombre completo.',
+    });
+    expect(prompt).toContain('divertido y descontracturado');
+    expect(prompt).toContain('viernes: 10:00-23:00');
+    expect(prompt).toContain('Nunca ofrezcas descuentos sin autorización');
+  });
 });

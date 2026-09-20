@@ -7,7 +7,6 @@ import {
   Calendar,
   Repeat,
   FileText,
-  Boxes,
   Package,
   Gift,
   Settings,
@@ -41,7 +40,7 @@ export function Sidebar({
           { href: '/turnos', label: 'Calendario', icon: Calendar },
           { href: '/turnos/abonos', label: 'Mensualizados', icon: Repeat },
           { href: '/turnos/servicios', label: 'Servicios', icon: FileText },
-          { href: '/turnos/recursos', label: 'Recursos', icon: Boxes },
+          { href: '/turnos/recursos', label: 'Combos', icon: Gift },
         ]
       : [
           { href: '/ventas/catalogo', label: 'Catálogo', icon: Package },

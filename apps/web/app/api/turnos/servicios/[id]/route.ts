@@ -37,6 +37,19 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ error: 'No se pudo actualizar el servicio' }, { status: 500 });
   }
 
+  // Sincronizar el recurso "espejo": nombre/subtipo/activo se reflejan en la columna del calendario.
+  const recursoUpdate: { nombre?: string; subtipo?: string | null; activo?: boolean } = {};
+  if ('nombre' in update) recursoUpdate.nombre = update.nombre;
+  if ('subtipo' in update) recursoUpdate.subtipo = update.subtipo;
+  if ('activo' in update) recursoUpdate.activo = update.activo;
+  if (Object.keys(recursoUpdate).length > 0) {
+    await supabase
+      .from('recursos')
+      .update(recursoUpdate)
+      .eq('servicio_id', id)
+      .eq('tenant_id', user.id);
+  }
+
   return NextResponse.json({ ok: true });
 }
 
@@ -51,6 +64,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
 
   const { id } = await params;
+
+  // El recurso espejo tiene ON DELETE CASCADE contra servicios, así que
+  // borrar el servicio elimina automáticamente la cancha del calendario.
   const { error } = await supabase.from('servicios').delete().eq('id', id).eq('tenant_id', user.id);
 
   if (error) {

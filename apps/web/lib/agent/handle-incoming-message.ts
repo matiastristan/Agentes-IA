@@ -16,6 +16,7 @@ interface NegocioLookup {
   estado_cuenta?: string;
   email_alertas?: string | null;
   instruccionesAdicionales?: string | null;
+  recursos?: Array<{ nombre: string; subtipo: string | null }>;
 }
 
 interface IncomingMessage {

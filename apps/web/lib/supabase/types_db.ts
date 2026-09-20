@@ -682,6 +682,7 @@ export type Database = {
           created_at: string
           id: string
           nombre: string
+          servicio_id: string | null
           subtipo: string | null
           tenant_id: string
         }
@@ -690,6 +691,7 @@ export type Database = {
           created_at?: string
           id?: string
           nombre: string
+          servicio_id?: string | null
           subtipo?: string | null
           tenant_id: string
         }
@@ -698,6 +700,7 @@ export type Database = {
           created_at?: string
           id?: string
           nombre?: string
+          servicio_id?: string | null
           subtipo?: string | null
           tenant_id?: string
         }

@@ -52,23 +52,23 @@
 }
 
 [data-palette="notion"] {
-  --color-primary: #D9D0C7;
-  --color-primary-hover: #BFB2A3;
+  --color-primary: #E07A5F;
+  --color-primary-hover: #C55A3B;
   --color-primary-active: #373737;
-  --color-primary-tint: #FBFAF8;
-  --color-secondary: #373737;
-  --color-accent: #E07A5F;
+  --color-primary-tint: #FBEEE9;
+  --color-secondary: #D9D0C7;
+  --color-accent: #373737;
   --color-bg-tint: #F7F6F3;
-  --color-ring: #D9D0C7;
+  --color-ring: #E07A5F;
 }
 
 [data-palette="spotify"] {
   --color-primary: #1DB954;
-  --color-primary-hover: #188F42;
+  --color-primary-hover: #149140;
   --color-primary-active: #0D2818;
-  --color-primary-tint: #E8FBF0;
+  --color-primary-tint: #D1FADF;
   --color-secondary: #D1FADF;
-  --color-accent: #D1FADF;
-  --color-bg-tint: #121212;
+  --color-accent: #121212;
+  --color-bg-tint: #F0FDF4;
   --color-ring: #1DB954;
 }

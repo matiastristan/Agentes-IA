@@ -48,6 +48,22 @@ const registrar_cita: ToolDefinition = {
   },
 };
 
+const cancelar_cita: ToolDefinition = {
+  type: 'function',
+  function: {
+    name: 'cancelar_cita',
+    description: 'Cancela un turno existente del cliente que está escribiendo (se identifica por su propio número de WhatsApp, nunca canceles el turno de otra persona).',
+    parameters: {
+      type: 'object',
+      properties: {
+        fecha: { type: 'string', description: 'Fecha del turno a cancelar, en formato YYYY-MM-DD' },
+        hora: { type: 'string', description: 'Hora del turno, en formato HH:MM. Opcional — si el cliente tiene un solo turno ese día, no hace falta.' },
+      },
+      required: ['fecha'],
+    },
+  },
+};
+
 const obtener_catalogo: ToolDefinition = {
   type: 'function',
   function: {
@@ -157,6 +173,7 @@ const registrar_venta: ToolDefinition = {
 const BASE_TOOLS = [
   consultar_disponibilidad,
   registrar_cita,
+  cancelar_cita,
   obtener_catalogo,
   reprogramar_cita,
   anotar_lista_espera,
