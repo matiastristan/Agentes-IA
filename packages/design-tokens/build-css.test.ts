@@ -28,4 +28,18 @@ describe('buildDesignTokensCss', () => {
     const rootBlock = css.match(/:root \{([\s\S]*?)\n\}/)![1];
     expect(rootBlock).toMatch(/--color-primary: #[0-9A-Fa-f]{6};/);
   });
+
+  it('define un bloque de modo oscuro que invierte los neutros (fondo oscuro, texto claro)', () => {
+    const darkBlock = css.match(/\[data-theme="dark"\] \{([\s\S]*?)\n\}/);
+    expect(darkBlock).not.toBeNull();
+    expect(darkBlock![1]).toContain('--color-background:');
+    expect(darkBlock![1]).toContain('--color-card:');
+    expect(darkBlock![1]).toContain('--color-text-primary:');
+    expect(darkBlock![1]).toContain('--color-border:');
+  });
+
+  it('el modo oscuro no pisa los colores de paleta (primary sigue viniendo del data-palette)', () => {
+    const darkBlock = css.match(/\[data-theme="dark"\] \{([\s\S]*?)\n\}/)![1];
+    expect(darkBlock).not.toContain('--color-primary:');
+  });
 });

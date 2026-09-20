@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { AparienciaForm } from '@/components/negocio/apariencia-form';
+import { ThemeToggle } from '@/components/negocio/theme-toggle';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +25,21 @@ export default async function AparienciaPage() {
         Así se ve tu panel — esto no afecta cómo responde el agente por WhatsApp.
       </p>
 
-      <div className="animate-fade-slide-in">
+      <h2 className="text-sm font-semibold text-text-primary mb-3 animate-fade-slide-in">
+        Paleta de colores
+      </h2>
+      <div className="animate-fade-slide-in mb-8">
         <AparienciaForm colorPaletteActual={negocio?.color_palette ?? 'apple'} />
+      </div>
+
+      <h2 className="text-sm font-semibold text-text-primary mb-1 animate-fade-slide-in">
+        Modo oscuro
+      </h2>
+      <p className="text-sm text-text-secondary mb-3 animate-fade-slide-in">
+        Se guarda en este dispositivo — cada persona del equipo puede elegir el suyo.
+      </p>
+      <div className="animate-fade-slide-in">
+        <ThemeToggle />
       </div>
     </main>
   );

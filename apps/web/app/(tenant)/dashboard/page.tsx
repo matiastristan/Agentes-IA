@@ -5,6 +5,7 @@ import { getDiaSemanaInfo } from '@/lib/turnos/get-dia-semana-info';
 import { buildCalendarioSlots } from '@/lib/turnos/build-calendario-slots';
 import { buildKpisPorCancha } from '@/lib/turnos/build-kpis-por-cancha';
 import { buildFacturacionResumen } from '@/lib/turnos/build-facturacion-resumen';
+import { filtrarRecursosVisibles } from '@/lib/turnos/filtrar-recursos-visibles';
 import { colorParaSubtipo } from '@/lib/turnos/color-para-subtipo';
 import { cn } from '@/lib/utils';
 
@@ -99,7 +100,12 @@ async function DashboardTurnos({ tenantId }: { tenantId: string }) {
   const [{ data: negocioHorarios }, { data: recursos }, { data: citasHoyRaw }, { data: abonos }, { data: citasRangoRaw }] =
     await Promise.all([
       supabase.from('negocio').select('horarios').eq('tenant_id', tenantId).single(),
-      supabase.from('recursos').select('id, nombre, subtipo').eq('tenant_id', tenantId).eq('activo', true),
+      supabase
+        .from('recursos')
+        .select('id, nombre, subtipo, activo, servicio_id, servicio:servicios!inner(activo)')
+        .eq('tenant_id', tenantId)
+        .eq('activo', true)
+        .eq('servicios.activo', true),
       supabase
         .from('citas')
         .select('id, recurso_id, hora, estado, customer_name, customer_id, servicio:servicios(duracion_minutos, precio)')
@@ -124,11 +130,13 @@ async function DashboardTurnos({ tenantId }: { tenantId: string }) {
     servicio: Array.isArray(c.servicio) ? (c.servicio[0] ?? null) : c.servicio,
   }));
 
+  const recursosVisibles = filtrarRecursosVisibles((recursos ?? []) as never);
+
   const slotsHoy = buildCalendarioSlots({
     fecha: fechaHoy,
     diaSemana,
     horarioDelDia: horarios[diaKey],
-    recursos: recursos ?? [],
+    recursos: recursosVisibles,
     subtipoFiltro: null,
     citas: citasHoy as never,
     abonos: abonos ?? [],
@@ -172,7 +180,7 @@ async function DashboardTurnos({ tenantId }: { tenantId: string }) {
   const ticketPromedio =
     resumenMes.cantidadTurnos > 0 ? Math.round(resumenMes.total / resumenMes.cantidadTurnos) : 0;
 
-  const nombrePorRecurso = Object.fromEntries((recursos ?? []).map((r) => [r.id, r.nombre]));
+  const nombrePorRecurso = Object.fromEntries(recursosVisibles.map((r) => [r.id, r.nombre]));
   const rankingAbonos = [...(abonos ?? [])].sort((a, b) => b.precio - a.precio).slice(0, 5);
 
   return (

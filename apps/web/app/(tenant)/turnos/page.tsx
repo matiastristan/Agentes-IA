@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getDiaSemanaInfo } from '@/lib/turnos/get-dia-semana-info';
+import { filtrarRecursosVisibles } from '@/lib/turnos/filtrar-recursos-visibles';
 import { CalendarioClient } from '@/components/turnos/calendario-client';
 
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,12 @@ export default async function TurnosPage({
   const [{ data: negocio }, { data: recursos }, { data: citasRaw }, { data: abonos }, { data: productos }, { data: servicios }, { data: combos }] =
     await Promise.all([
       supabase.from('negocio').select('horarios').eq('tenant_id', user!.id).single(),
-      supabase.from('recursos').select('id, nombre, subtipo').eq('tenant_id', user!.id).eq('activo', true),
+      supabase
+        .from('recursos')
+        .select('id, nombre, subtipo, activo, servicio_id, servicio:servicios!inner(activo)')
+        .eq('tenant_id', user!.id)
+        .eq('activo', true)
+        .eq('servicios.activo', true),
       supabase
         .from('citas')
         .select('id, recurso_id, hora, customer_name, customer_id, servicio:servicios(duracion_minutos, precio)')
@@ -72,7 +78,7 @@ export default async function TurnosPage({
         fecha={fecha}
         diaSemana={diaSemana}
         horarioDelDia={horarioDelDia}
-        recursos={recursos ?? []}
+        recursos={filtrarRecursosVisibles((recursos ?? []) as never)}
         citas={citas as never}
         abonos={abonos ?? []}
         productos={productos ?? []}

@@ -37,9 +37,10 @@ export async function POST(request: NextRequest) {
         );
         const { data: recursos } = await supabase
           .from('recursos')
-          .select('nombre, subtipo')
+          .select('nombre, subtipo, servicio:servicios!inner(activo)')
           .eq('tenant_id', user.id)
-          .eq('activo', true);
+          .eq('activo', true)
+          .eq('servicios.activo', true);
         return {
           ...data,
           catalogo,

@@ -40,6 +40,22 @@ body {
   color: var(--color-text-primary);
 }
 
+/* Durante el cambio de tema, el toggle setea --theme-transition por ~250ms
+   para que el cambio de colores se sienta suave en vez de un corte brusco.
+   Fuera de ese momento la variable no existe y no hay transición alguna,
+   así el hover y el focus siguen respondiendo al instante. */
+body,
+body * {
+  transition: var(--theme-transition, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  body * {
+    transition: none;
+  }
+}
+
 @keyframes fade-slide-in {
   from {
     opacity: 0;

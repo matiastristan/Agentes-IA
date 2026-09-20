@@ -76,6 +76,23 @@ ${colorVarsForPalette(paletteDefault)}
 }
 
 ${Object.entries(tokens.palettes).map(([name, p]) => paletteBlock(name, p)).join('\n\n')}
+
+/* Modo oscuro: invierte SOLO los neutros (fondo, superficies, texto, bordes).
+   Los colores de marca siguen viniendo del bloque [data-palette] correspondiente,
+   así la paleta elegida se sigue respetando en modo oscuro. */
+[data-theme="dark"] {
+  --color-background: ${tokens.gray['900']};
+  --color-foreground: ${tokens.gray['50']};
+  --color-card: ${tokens.gray['800']};
+  --color-text-primary: ${tokens.gray['50']};
+  --color-text-secondary: ${tokens.gray['300']};
+  --color-text-muted: ${tokens.gray['400']};
+  --color-border: ${tokens.gray['700']};
+  --color-bg-tint: ${tokens.gray['800']};
+  --color-success-bg: #06281A;
+  --color-warning-bg: #2E2206;
+  --color-error-bg: #2D0F0F;
+}
 `;
 
   return css;

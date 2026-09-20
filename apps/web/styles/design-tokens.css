@@ -72,3 +72,20 @@
   --color-bg-tint: #F0FDF4;
   --color-ring: #1DB954;
 }
+
+/* Modo oscuro: invierte SOLO los neutros (fondo, superficies, texto, bordes).
+   Los colores de marca siguen viniendo del bloque [data-palette] correspondiente,
+   así la paleta elegida se sigue respetando en modo oscuro. */
+[data-theme="dark"] {
+  --color-background: #111827;
+  --color-foreground: #FAFAFA;
+  --color-card: #1F2937;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #9CA3AF;
+  --color-border: #374151;
+  --color-bg-tint: #1F2937;
+  --color-success-bg: #06281A;
+  --color-warning-bg: #2E2206;
+  --color-error-bg: #2D0F0F;
+}
