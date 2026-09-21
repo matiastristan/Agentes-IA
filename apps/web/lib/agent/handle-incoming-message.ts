@@ -24,6 +24,8 @@ interface IncomingMessage {
   phoneNumberId: string;
   from: string;
   text: string;
+  /** ID del mensaje en WhatsApp. Se guarda para detectar reenvíos de Meta. */
+  wamid?: string;
 }
 
 interface Deps {
@@ -159,6 +161,7 @@ export async function handleIncomingMessage(
     conversationId: conversation.id,
     role: 'user',
     content: incoming.text,
+    wamid: incoming.wamid,
   });
 
   // Calificación automática de lead — upsell activable por negocio desde el

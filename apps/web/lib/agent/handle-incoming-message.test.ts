@@ -305,4 +305,15 @@ describe('handleIncomingMessage', () => {
     expect(result.handled).toBe(true);
     expect(deps.sendWhatsAppMessage).toHaveBeenCalled();
   });
+  it('guarda el wamid del mensaje entrante, para poder detectar reenvíos de Meta', async () => {
+    const deps = makeDeps();
+    await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola', wamid: 'wamid.ENTRANTE123' },
+      deps
+    );
+    const guardadoUser = (deps.saveMessage as any).mock.calls.find(
+      (c: any[]) => c[0].role === 'user'
+    );
+    expect(guardadoUser[0].wamid).toBe('wamid.ENTRANTE123');
+  });
 });

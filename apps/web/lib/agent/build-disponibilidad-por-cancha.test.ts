@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildDisponibilidadPorCancha, serviciosDisponibles } from './build-disponibilidad-por-cancha';
+import {
+  buildDisponibilidadPorCancha,
+  serviciosDisponibles,
+  formatearDisponibilidad,
+} from './build-disponibilidad-por-cancha';
 
 const RECURSOS = [
   { id: 'p1', nombre: 'Cancha Padel 1', subtipo: 'Padel_1' },
@@ -123,5 +127,23 @@ describe('buildDisponibilidadPorCancha', () => {
 
   it('serviciosDisponibles sin recursos devuelve lista vacía', () => {
     expect(serviciosDisponibles([])).toEqual([]);
+  });
+  it('formatea la disponibilidad con una línea por cancha, listando TODAS', () => {
+    const texto = formatearDisponibilidad([
+      { cancha: 'Cancha Padel 1', horasLibres: ['20:00', '21:00', '22:00'] },
+      { cancha: 'Cancha Padel 2', horasLibres: ['17:00', '18:00', '19:00', '22:00'] },
+    ]);
+    expect(texto).toBe(
+      'Cancha Padel 1: 20:00, 21:00, 22:00\nCancha Padel 2: 17:00, 18:00, 19:00, 22:00'
+    );
+  });
+
+  it('una cancha completa figura como sin turnos libres (no se omite)', () => {
+    const texto = formatearDisponibilidad([
+      { cancha: 'Cancha Padel 1', horasLibres: [] },
+      { cancha: 'Cancha Padel 2', horasLibres: ['17:00'] },
+    ]);
+    expect(texto).toContain('Cancha Padel 1: sin turnos libres');
+    expect(texto).toContain('Cancha Padel 2: 17:00');
   });
 });

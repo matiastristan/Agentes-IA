@@ -226,4 +226,9 @@ describe('buildSystemPrompt', () => {
     // No debe confundirse con falta de disponibilidad
     expect(prompt).toContain('NO digas que no hay disponibilidad');
   });
+  it('instruye a mostrar textoParaCliente completo, con todas las canchas', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    expect(prompt).toContain('textoParaCliente');
+    expect(prompt.toLowerCase()).toContain('nunca muestres solo una cancha');
+  });
 });

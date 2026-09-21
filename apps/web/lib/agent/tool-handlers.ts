@@ -1,5 +1,9 @@
 import { findRecursoDisponible } from '../turnos/find-recurso-disponible';
-import { buildDisponibilidadPorCancha, serviciosDisponibles } from './build-disponibilidad-por-cancha';
+import {
+  buildDisponibilidadPorCancha,
+  serviciosDisponibles,
+  formatearDisponibilidad,
+} from './build-disponibilidad-por-cancha';
 
 interface ToolContext {
   tenantId: string;
@@ -79,7 +83,15 @@ async function consultarDisponibilidad(
     };
   }
 
-  return { data: { fecha: args.fecha, horarioDelDia: horarioDelDia ?? 'cerrado', canchas: porCancha } };
+  return {
+    data: {
+      fecha: args.fecha,
+      horarioDelDia: horarioDelDia ?? 'cerrado',
+      canchas: porCancha,
+      // Texto ya armado, una línea por cancha: el modelo lo copia tal cual.
+      textoParaCliente: formatearDisponibilidad(porCancha),
+    },
+  };
 }
 
 async function cancelarCita(

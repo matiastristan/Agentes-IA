@@ -95,3 +95,19 @@ export function buildDisponibilidadPorCancha({
 export function serviciosDisponibles(recursos: RecursoDisp[]): string[] {
   return recursos.map((r) => r.nombre);
 }
+
+/**
+ * Texto listo para mostrarle al cliente: una línea por cancha, siempre todas.
+ *
+ * Se le entrega armado al modelo para que no tenga que resumir él: los modelos
+ * gratuitos tendían a mostrar solo la primera cancha y omitir el resto.
+ */
+export function formatearDisponibilidad(canchas: DisponibilidadCancha[]): string {
+  return canchas
+    .map((c) =>
+      c.horasLibres.length > 0
+        ? `${c.cancha}: ${c.horasLibres.join(', ')}`
+        : `${c.cancha}: sin turnos libres`
+    )
+    .join('\n');
+}

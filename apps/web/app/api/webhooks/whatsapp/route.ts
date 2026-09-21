@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
+import { evaluarMensajeEntrante } from '@/lib/whatsapp/evaluar-mensaje-entrante';
 import { createServiceClient } from '@/lib/supabase/service-client';
 import { verifyMetaSignature } from '@/lib/whatsapp/verify-signature';
 import { sendWhatsAppMessage } from '@/lib/whatsapp/send-message';
@@ -7,6 +8,10 @@ import { callOpenRouter } from '@/lib/agent/openrouter-client';
 import { executeToolCall } from '@/lib/agent/tool-handlers';
 import { handleIncomingMessage } from '@/lib/agent/handle-incoming-message';
 import { buildCatalogoParaNegocio } from '@/lib/agent/build-catalogo-para-negocio';
+
+// El procesamiento corre en after() después de responderle a Meta. Esto le da a
+// la función tiempo suficiente para que el modelo termine de responder.
+export const maxDuration = 60;
 
 // Meta llama a GET una sola vez, al configurar el webhook, para confirmar que el
 // endpoint es tuyo. Ver: https://developers.facebook.com/docs/graph-api/webhooks/getting-started
@@ -67,9 +72,65 @@ export async function POST(request: NextRequest) {
   }
 
   const phoneNumberId = change.metadata.phone_number_id;
+  const wamidEntrante: string | undefined = message.id;
 
+  // Defensa contra reenvíos de Meta: si ya procesamos este wamid, o si es un
+  // reintento acumulado de hace horas, respondemos 200 y no hacemos nada.
+  let yaProcesado = false;
+  if (wamidEntrante) {
+    const { data: existente } = await supabase
+      .from('messages')
+      .select('id')
+      .eq('wamid', wamidEntrante)
+      .maybeSingle();
+    yaProcesado = !!existente;
+  }
+
+  const decision = evaluarMensajeEntrante({
+    timestampSeg: message.timestamp ? Number(message.timestamp) : undefined,
+    yaProcesado,
+  });
+
+  if (decision !== 'procesar') {
+    console.info(`Mensaje ${wamidEntrante} descartado: ${decision}`);
+    return new NextResponse('OK', { status: 200 });
+  }
+
+  // Le respondemos 200 a Meta AL INSTANTE y procesamos después. Antes el agente
+  // tardaba ~20s con modelos gratuitos; Meta asumía que el webhook había fallado
+  // y reenviaba el mismo mensaje, generando confirmaciones duplicadas.
+  after(async () => {
+    try {
+      await procesarMensaje({
+        phoneNumberId,
+        from: message.from,
+        text: message.text.body,
+        wamid: wamidEntrante,
+        supabase,
+      });
+    } catch (err) {
+      console.error('Error procesando mensaje entrante:', err);
+    }
+  });
+
+  return new NextResponse('OK', { status: 200 });
+}
+
+async function procesarMensaje({
+  phoneNumberId,
+  from,
+  text,
+  wamid,
+  supabase,
+}: {
+  phoneNumberId: string;
+  from: string;
+  text: string;
+  wamid: string | undefined;
+  supabase: ReturnType<typeof createServiceClient>;
+}) {
   const result = await handleIncomingMessage(
-    { phoneNumberId, from: message.from, text: message.text.body },
+    { phoneNumberId, from, text, wamid },
     {
       findNegocioByPhoneNumberId: async (id) => {
         const { data } = await supabase.from('negocio').select('*').eq('phone_number_id', id).single();
@@ -159,7 +220,7 @@ export async function POST(request: NextRequest) {
       },
       callOpenRouter,
       executeToolCall: (name, args, ctx) =>
-        executeToolCall(name, args, { ...ctx, phone: ctx.phone ?? message.from, supabase }),
+        executeToolCall(name, args, { ...ctx, phone: ctx.phone ?? from, supabase }),
       sendWhatsAppMessage,
       isAlertaLeadCalienteHabilitada: async (tenantId) => {
         const { data } = await supabase
@@ -180,6 +241,4 @@ export async function POST(request: NextRequest) {
   if (result.sendError) {
     console.error('El agente respondió pero no se pudo entregar por WhatsApp:', result.sendError);
   }
-
-  return new NextResponse('OK', { status: 200 });
 }
