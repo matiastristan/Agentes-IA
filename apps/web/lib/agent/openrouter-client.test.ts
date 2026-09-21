@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { callOpenRouter } from './openrouter-client';
+import { callOpenRouter, type OpenRouterLimitError } from './openrouter-client';
 
 describe('callOpenRouter', () => {
   beforeEach(() => {
@@ -128,5 +128,67 @@ describe('callOpenRouter', () => {
         tools: [],
       })
     ).rejects.toThrow();
+  });
+
+  it('cuando TODOS los modelos devuelven 429, el error indica que se agotó el límite diario', async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({ ok: false, status: 429 })
+      .mockResolvedValueOnce({ ok: false, status: 429 });
+
+    try {
+      await callOpenRouter({
+        models: ['openrouter/free', 'z-ai/glm-5.2:free'],
+        messages: [{ role: 'user', content: 'hola' }],
+        tools: [],
+      });
+      expect.unreachable('debería haber tirado error');
+    } catch (err) {
+      expect((err as OpenRouterLimitError).esLimiteAgotado).toBe(true);
+    }
+  });
+
+  it('si falla por 500 (no por límite), el error NO se marca como límite agotado', async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({ ok: false, status: 500 })
+      .mockResolvedValueOnce({ ok: false, status: 500 });
+
+    try {
+      await callOpenRouter({
+        models: ['openrouter/free', 'z-ai/glm-5.2:free'],
+        messages: [{ role: 'user', content: 'hola' }],
+        tools: [],
+      });
+      expect.unreachable('debería haber tirado error');
+    } catch (err) {
+      expect((err as OpenRouterLimitError).esLimiteAgotado).toBeFalsy();
+    }
+  });
+
+  it('un 429 en el primer modelo no gasta reintentos: pasa directo al siguiente', async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({ ok: false, status: 429 })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ choices: [{ message: { role: 'assistant', content: 'ok' } }] }),
+      });
+
+    await callOpenRouter({
+      models: ['openrouter/free', 'z-ai/glm-5.2:free'],
+      messages: [{ role: 'user', content: 'hola' }],
+      tools: [],
+    });
+
+    // Exactamente 2 llamadas: una por modelo, sin reintentos desperdiciados
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('con un solo modelo, un 429 NO se reintenta (el límite no se libera en milisegundos)', async () => {
+    (fetch as any).mockResolvedValueOnce({ ok: false, status: 429 });
+
+    await expect(
+      callOpenRouter({ model: 'x', messages: [{ role: 'user', content: 'hola' }], tools: [] })
+    ).rejects.toThrow();
+
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

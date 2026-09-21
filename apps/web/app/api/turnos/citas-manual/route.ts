@@ -16,6 +16,12 @@ export async function POST(request: NextRequest) {
   if (!fecha || !hora || !recursoId || !clienteNombre?.trim()) {
     return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
   }
+  if (!clienteTelefono?.trim()) {
+    return NextResponse.json(
+      { error: 'El teléfono es obligatorio para poder enviar confirmaciones y recordatorios' },
+      { status: 400 }
+    );
+  }
 
   const { data, error } = await supabase
     .from('citas')
@@ -26,7 +32,7 @@ export async function POST(request: NextRequest) {
       recurso_id: recursoId,
       servicio_id: servicioId || null,
       customer_name: clienteNombre,
-      customer_id: clienteTelefono || 'sin-telefono',
+      customer_id: clienteTelefono.trim(),
     })
     .select()
     .single();

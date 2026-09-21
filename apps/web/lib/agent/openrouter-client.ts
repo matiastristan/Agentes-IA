@@ -21,6 +21,30 @@ interface OpenRouterResult {
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MAX_ATTEMPTS_PER_MODEL = 3;
 
+/**
+ * Error de OpenRouter que distingue el caso "se agotó el cupo" del resto.
+ *
+ * Importa porque el tratamiento es distinto: un 500 es transitorio y conviene
+ * reintentar, pero un 429 significa que no hay más requests disponibles hoy —
+ * reintentar solo gasta tiempo y deja al cliente esperando.
+ */
+export class OpenRouterLimitError extends Error {
+  esLimiteAgotado: boolean;
+
+  constructor(message: string, esLimiteAgotado: boolean) {
+    super(message);
+    this.name = 'OpenRouterLimitError';
+    this.esLimiteAgotado = esLimiteAgotado;
+  }
+}
+
+// 429 = sin cupo (rate limit / límite diario de modelos gratuitos)
+// 402 = sin crédito
+// Ninguno de los dos se resuelve reintentando en milisegundos.
+function esErrorDeCupo(status: number): boolean {
+  return status === 429 || status === 402;
+}
+
 async function attemptModel(
   model: string,
   messages: ChatMessage[],
@@ -45,7 +69,14 @@ async function attemptModel(
       });
 
       if (!response.ok) {
-        lastError = new Error(`OpenRouter respondió ${response.status}`);
+        const deCupo = esErrorDeCupo(response.status);
+        lastError = new OpenRouterLimitError(
+          `OpenRouter respondió ${response.status} (${model})`,
+          deCupo
+        );
+        // Sin cupo no tiene sentido reintentar el mismo modelo: el límite no
+        // se libera en milisegundos. Salimos ya para pasar al siguiente.
+        if (deCupo) break;
         continue;
       }
 
@@ -56,7 +87,9 @@ async function attemptModel(
     }
   }
 
-  throw lastError instanceof Error ? lastError : new Error(`No se pudo obtener respuesta de OpenRouter (${model})`);
+  throw lastError instanceof Error
+    ? lastError
+    : new OpenRouterLimitError(`No se pudo obtener respuesta de OpenRouter (${model})`, false);
 }
 
 export async function callOpenRouter({
@@ -71,16 +104,28 @@ export async function callOpenRouter({
   // un único `model` (comportamiento histórico, sin cambios).
   if (models && models.length > 0) {
     let lastError: unknown;
+    let todosPorCupo = true;
+
     for (const m of models) {
       try {
         return await attemptModel(m, messages, tools, 1);
       } catch (err) {
         lastError = err;
+        if (!(err instanceof OpenRouterLimitError && err.esLimiteAgotado)) {
+          todosPorCupo = false;
+        }
       }
     }
-    throw lastError instanceof Error
-      ? lastError
-      : new Error('No se pudo obtener respuesta de ningún modelo de la lista');
+
+    // Si todos los modelos rebotaron por falta de cupo, marcamos el error como
+    // "límite agotado" para que quien llame pueda avisar con un mensaje claro
+    // en vez de dejar al cliente sin respuesta.
+    throw new OpenRouterLimitError(
+      todosPorCupo
+        ? 'Se agotó el límite diario de consultas a los modelos gratuitos'
+        : `No se pudo obtener respuesta de ningún modelo (${lastError instanceof Error ? lastError.message : 'error desconocido'})`,
+      todosPorCupo
+    );
   }
 
   return attemptModel(model!, messages, tools, MAX_ATTEMPTS_PER_MODEL);

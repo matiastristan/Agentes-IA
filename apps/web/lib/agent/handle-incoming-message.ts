@@ -1,5 +1,6 @@
 import { buildSystemPrompt } from './system-prompt';
 import { getFechaArgentina } from './get-fecha-argentina';
+import { OpenRouterLimitError } from './openrouter-client';
 import { getToolsForTier } from './tools';
 import { categorizeTemperatura } from './categorize-temperature';
 import { shouldTriggerLeadAlert } from '../notifications/should-trigger-lead-alert';
@@ -68,11 +69,20 @@ interface Deps {
 
 // Modelos gratuitos de OpenRouter, con fallback en orden: si el primero se
 // queda sin cupo (402/429), se prueba el siguiente automáticamente.
-const FREE_MODELS = [
+// Modelos gratuitos, en orden de preferencia. Si uno falla o está saturado se
+// pasa automáticamente al siguiente.
+//
+// OJO: tener más modelos NO da más cupo diario. El límite de requests a modelos
+// gratuitos que aplica OpenRouter es por CUENTA, no por modelo, así que esta
+// lista sirve para resistir caídas puntuales de un proveedor, no para estirar
+// el cupo. Para eso hay que pasar a modelos pagos.
+export const FREE_MODELS = [
   'openrouter/free',
   'z-ai/glm-5.2:free',
   'google/gemma-4-26b-a4b-it:free',
   'google/gemma-4-31b-it:free',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'qwen/qwen-2.5-72b-instruct:free',
 ];
 
 // Envía la respuesta por WhatsApp y guarda el mensaje del asistente con el
@@ -193,7 +203,28 @@ export async function handleIncomingMessage(
     { role: 'user' as const, content: incoming.text },
   ];
 
-  let { message } = await deps.callOpenRouter({ models: FREE_MODELS, messages, tools });
+  let message;
+  try {
+    ({ message } = await deps.callOpenRouter({ models: FREE_MODELS, messages, tools }));
+  } catch (err) {
+    // Si el modelo no pudo responder (cupo agotado, red caída, etc.) el cliente
+    // NO puede quedar sin respuesta: eso es lo peor que puede pasar en WhatsApp.
+    // Le mandamos un mensaje humano, sin detalles técnicos.
+    const esCupo = err instanceof OpenRouterLimitError && err.esLimiteAgotado;
+    const aviso = esCupo
+      ? 'Perdón, en este momento no puedo responderte automáticamente. Ya le avisé al equipo y te contestan a la brevedad. 🙏'
+      : 'Perdón, tuve un problema técnico para responderte. Ya le avisé al equipo y te contestan a la brevedad. 🙏';
+
+    const sendError = await sendAndSaveAssistantMessage(
+      negocio,
+      conversation.id,
+      aviso,
+      incoming,
+      deps
+    );
+
+    return { handled: true, responseText: aviso, sendError };
+  }
 
   // Si el modelo pidió usar una tool, la ejecutamos y le devolvemos el resultado
   // para que genere la respuesta final en texto (segundo round-trip).

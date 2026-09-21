@@ -7,6 +7,8 @@ import { createServiceClient } from '@/lib/supabase/service-client';
 export const dynamic = 'force-dynamic';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { KPICard } from '@/components/ui/kpi-card';
+import { ConsumoIaPanel } from '@/components/admin/consumo-ia-panel';
+import { FREE_MODELS } from '@/lib/agent/handle-incoming-message';
 
 export default async function AdminDashboardPage() {
   const supabase = createServiceClient();
@@ -31,17 +33,21 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {[
-          { label: 'Negocios activos', value: totalActivos ?? 0 },
-          { label: 'Por vencer (7 días)', value: porVencer?.length ?? 0 },
+          { label: 'Negocios activos', value: totalActivos ?? 0, accent: 'primary' as const },
+          { label: 'Por vencer (7 días)', value: porVencer?.length ?? 0, accent: 'caliente' as const },
         ].map((kpi, i) => (
           <div
             key={kpi.label}
             className="animate-fade-slide-in"
             style={{ animationDelay: `${i * 60}ms` }}
           >
-            <KPICard label={kpi.label} value={kpi.value} />
+            <KPICard label={kpi.label} value={kpi.value} accent={kpi.accent} />
           </div>
         ))}
+      </div>
+
+      <div className="mb-8 animate-fade-slide-in">
+        <ConsumoIaPanel modelos={FREE_MODELS} />
       </div>
 
       <h2 className="text-lg font-medium text-text-primary mb-3">Vencimientos próximos</h2>

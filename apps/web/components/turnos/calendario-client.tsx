@@ -6,6 +6,7 @@ import { buildCalendarioSlots } from '@/lib/turnos/build-calendario-slots';
 import { CuentaTurnoModal } from './cuenta-turno-modal';
 import { NuevaCitaManualModal } from './nueva-cita-manual-modal';
 import { colorParaSubtipo } from '@/lib/turnos/color-para-subtipo';
+import { fondoParaEstadoTurno } from '@/lib/turnos/fondo-para-estado-turno';
 import { cn } from '@/lib/utils';
 
 interface RecursoRaw {
@@ -49,6 +50,7 @@ interface ServicioOption {
 
 interface TurnoAbierto {
   tipo: 'cita' | 'abono';
+  estado?: string;
   id: string;
   clienteNombre: string;
   clienteTelefono: string | null;
@@ -220,9 +222,10 @@ export function CalendarioClient({
                       }
                       className={cn(
                         'text-left rounded-lg border p-3 text-sm transition-[transform,box-shadow] duration-150 ease-out',
-                        h.ocupado
+                        h.ocupado && h.turno
                           ? cn(
-                              'border-primary-tint bg-primary-tint/40 hover:-translate-y-0.5 hover:shadow-md cursor-pointer',
+                              'hover:-translate-y-0.5 hover:shadow-md cursor-pointer',
+                              fondoParaEstadoTurno(h.turno.tipo, h.turno.estado),
                               colorParaSubtipo(s.recurso.subtipo)
                             )
                           : 'border-dashed border-border text-text-muted hover:border-primary hover:text-text-primary cursor-pointer'
@@ -231,8 +234,30 @@ export function CalendarioClient({
                       <p className="font-medium">{h.hora}</p>
                       {h.turno ? (
                         <>
-                          <p className="text-text-primary">{h.turno.clienteNombre}</p>
-                          <p className="text-xs text-text-secondary">${h.turno.precio}</p>
+                          <p className="text-text-primary truncate">{h.turno.clienteNombre}</p>
+                          {h.turno.clienteTelefono && (
+                            <p className="text-xs text-text-secondary tabular-nums">
+                              {h.turno.clienteTelefono}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between gap-1 mt-0.5">
+                            <span className="text-xs text-text-secondary">${h.turno.precio}</span>
+                            {h.turno.tipo === 'abono' && (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-text-muted">
+                                Mensual
+                              </span>
+                            )}
+                            {h.turno.estado === 'completada' && (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-success">
+                                Pagado
+                              </span>
+                            )}
+                            {h.turno.estado === 'no_show' && (
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-error">
+                                No vino
+                              </span>
+                            )}
+                          </div>
                         </>
                       ) : (
                         <p className="text-xs">+ Cargar turno</p>

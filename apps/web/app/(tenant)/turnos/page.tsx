@@ -30,7 +30,7 @@ export default async function TurnosPage({
         .eq('servicios.activo', true),
       supabase
         .from('citas')
-        .select('id, recurso_id, hora, customer_name, customer_id, servicio:servicios(duracion_minutos, precio)')
+        .select('id, recurso_id, hora, estado, customer_name, customer_id, servicio:servicios(duracion_minutos, precio)')
         .eq('tenant_id', user!.id)
         .eq('fecha', fecha)
         .neq('estado', 'cancelada'),

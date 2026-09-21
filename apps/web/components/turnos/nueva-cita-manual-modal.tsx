@@ -49,7 +49,7 @@ export function NuevaCitaManualModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!slot || !clienteNombre.trim()) return;
+    if (!slot || !clienteNombre.trim() || !clienteTelefono.trim()) return;
     setLoading(true);
 
     const res = await fetch('/api/turnos/citas-manual', {
@@ -60,7 +60,7 @@ export function NuevaCitaManualModal({
         recursoId: slot.recursoId,
         servicioId: servicioId || undefined,
         clienteNombre,
-        clienteTelefono: clienteTelefono || undefined,
+        clienteTelefono,
       }),
     });
     const data = await res.json();
@@ -111,8 +111,8 @@ export function NuevaCitaManualModal({
               onChange={(e) => setClienteNombre(e.target.value)}
             />
             <Input
-              label="Teléfono (opcional)"
-              placeholder="Para poder mandarle el detalle al cerrar"
+              label="Teléfono"
+              placeholder="Obligatorio — para confirmaciones y recordatorios"
               value={clienteTelefono}
               onChange={(e) => setClienteTelefono(e.target.value)}
             />
@@ -135,7 +135,7 @@ export function NuevaCitaManualModal({
                 </select>
               </div>
             )}
-            <Button type="submit" disabled={loading || !clienteNombre.trim()}>
+            <Button type="submit" disabled={loading || !clienteNombre.trim() || !clienteTelefono.trim()}>
               {loading ? 'Guardando...' : 'Cargar turno'}
             </Button>
           </form>

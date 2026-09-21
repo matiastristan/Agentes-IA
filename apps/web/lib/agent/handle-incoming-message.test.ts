@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { handleIncomingMessage } from './handle-incoming-message';
+import { OpenRouterLimitError } from './openrouter-client';
 
 const NEGOCIO_A = {
   tenant_id: 'tenant-a',
@@ -269,5 +270,39 @@ describe('handleIncomingMessage', () => {
     );
 
     expect(deps.sendLeadAlertEmail).not.toHaveBeenCalled();
+  });
+  it('si se agotó el cupo de los modelos, le avisa al cliente en vez de dejarlo sin respuesta', async () => {
+    const limitError = new OpenRouterLimitError('Se agotó el límite diario', true);
+    const deps = makeDeps({
+      callOpenRouter: vi.fn().mockRejectedValue(limitError),
+    });
+
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+
+    // No explota: responde algo al cliente
+    expect(result.handled).toBe(true);
+    expect(deps.sendWhatsAppMessage).toHaveBeenCalled();
+    const textoEnviado = (deps.sendWhatsAppMessage as any).mock.calls[0][0].text;
+    expect(textoEnviado.length).toBeGreaterThan(0);
+    // No le mostramos detalles técnicos al cliente final
+    expect(textoEnviado).not.toContain('OpenRouter');
+    expect(textoEnviado).not.toContain('429');
+  });
+
+  it('ante un error que NO es de cupo, también responde algo en vez de quedar mudo', async () => {
+    const deps = makeDeps({
+      callOpenRouter: vi.fn().mockRejectedValue(new Error('network down')),
+    });
+
+    const result = await handleIncomingMessage(
+      { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Hola' },
+      deps
+    );
+
+    expect(result.handled).toBe(true);
+    expect(deps.sendWhatsAppMessage).toHaveBeenCalled();
   });
 });

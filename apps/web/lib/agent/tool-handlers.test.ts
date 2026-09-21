@@ -90,7 +90,11 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     });
 
     const data = result.data as Array<{ tipo: string; hora: string }>;
-    expect(data.some((d) => d.tipo === 'abono' && d.hora === '18:00:00')).toBe(true);
+    // Un abono de 18 a 20 ocupa DOS horas, no solo la de inicio
+    expect(data.some((d) => d.tipo === 'abono' && d.hora === '18:00')).toBe(true);
+    expect(data.some((d) => d.tipo === 'abono' && d.hora === '19:00')).toBe(true);
+    // Las 20:00 ya queda libre (el fin del rango es exclusivo)
+    expect(data.some((d) => d.tipo === 'abono' && d.hora === '20:00')).toBe(false);
   });
 
   it('cancelar_cita cancela el turno del cliente que escribe (matcheado por su teléfono), no el de otro', async () => {

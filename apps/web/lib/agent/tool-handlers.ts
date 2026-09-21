@@ -1,4 +1,5 @@
 import { findRecursoDisponible } from '../turnos/find-recurso-disponible';
+import { expandirRangoAHoras } from './expandir-rango-a-horas';
 
 interface ToolContext {
   tenantId: string;
@@ -44,11 +45,16 @@ async function consultarDisponibilidad(
 
   // Los abonos son clientes mensualizados: ocupan ese horario TODAS las semanas
   // ese día, aunque no haya una fila en `citas` para esa fecha puntual.
-  const abonosFormato = (abonos ?? []).map((a: { hora_inicio: string }) => ({
-    tipo: 'abono',
-    hora: a.hora_inicio,
-    estado: 'ocupado_por_cliente_mensualizado',
-  }));
+  // Un abono de 18:00 a 20:00 ocupa DOS horas (18 y 19), no solo la de inicio.
+  // Expandimos el rango completo para que el modelo vea cada hora bloqueada.
+  const abonosFormato = (abonos ?? []).flatMap(
+    (a: { hora_inicio: string; hora_fin: string; cliente_nombre?: string }) =>
+      expandirRangoAHoras(a.hora_inicio, a.hora_fin).map((hora) => ({
+        tipo: 'abono',
+        hora,
+        estado: 'ocupado_por_cliente_mensualizado',
+      }))
+  );
 
   return { data: [...citasFormato, ...abonosFormato] };
 }

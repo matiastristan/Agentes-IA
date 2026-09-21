@@ -1,3 +1,5 @@
+import { horaDentroDeRango } from './hora-dentro-de-rango';
+
 interface Recurso {
   id: string;
   nombre: string;
@@ -6,6 +8,7 @@ interface Recurso {
 
 interface Cita {
   id: string;
+  estado?: string;
   recurso_id: string | null;
   hora: string;
   customer_name: string | null;
@@ -26,6 +29,7 @@ interface Abono {
 
 interface TurnoInfo {
   tipo: 'cita' | 'abono';
+  estado?: string;
   id: string;
   clienteNombre: string;
   clienteTelefono: string | null;
@@ -93,6 +97,7 @@ export function buildCalendarioSlots(input: BuildCalendarioSlotsInput): RecursoC
           ocupado: true,
           turno: {
             tipo: 'cita',
+            estado: cita.estado,
             id: cita.id,
             clienteNombre: cita.customer_name ?? 'Sin nombre',
             clienteTelefono: cita.customer_id,
@@ -103,7 +108,10 @@ export function buildCalendarioSlots(input: BuildCalendarioSlotsInput): RecursoC
       }
 
       const abono = abonos.find(
-        (a) => a.recurso_id === recurso.id && a.dia_semana === diaSemana && a.hora_inicio.slice(0, 5) === hora
+        (a) =>
+          a.recurso_id === recurso.id &&
+          a.dia_semana === diaSemana &&
+          horaDentroDeRango(hora, a.hora_inicio, a.hora_fin)
       );
       if (abono) {
         return {

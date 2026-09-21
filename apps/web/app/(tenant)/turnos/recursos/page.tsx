@@ -35,21 +35,24 @@ export default async function CombosPromocionesPage() {
       </p>
 
       {(productos ?? []).length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-10 text-center animate-fade-slide-in">
+        <div className="rounded-lg border border-dashed border-border p-6 text-center animate-fade-slide-in mb-6">
           <p className="text-sm text-text-muted">
-            Todavía no cargaste stock. Andá a Configuración → Stock para empezar.
+            Para armar combos nuevos necesitás cargar stock en Configuración → Stock.
           </p>
         </div>
       ) : (
-        <>
-          <div className="animate-fade-slide-in">
-            <NuevoComboForm productos={productos ?? []} />
-          </div>
+        <div className="animate-fade-slide-in">
+          <NuevoComboForm productos={productos ?? []} />
+        </div>
+      )}
 
-          <div className="mt-6 animate-fade-slide-in">
-            <CombosList combos={(combos ?? []) as never} productos={(productos ?? []) as never} />
-          </div>
-        </>
+      {/* La lista de combos ya creados se muestra SIEMPRE, aunque no haya stock:
+          si no, un combo existente queda invisible acá pero sigue apareciendo
+          en el menú de consumos del calendario. */}
+      {(combos ?? []).length > 0 && (
+        <div className="mt-6 animate-fade-slide-in">
+          <CombosList combos={(combos ?? []) as never} productos={(productos ?? []) as never} />
+        </div>
       )}
     </main>
   );
