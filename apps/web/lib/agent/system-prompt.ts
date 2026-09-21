@@ -6,6 +6,8 @@ interface NegocioForPrompt {
   tier: 'base' | 'pro';
   instruccionesAdicionales?: string | null;
   recursos?: Array<{ nombre: string; subtipo: string | null }>;
+  /** Teléfono desde el que escribe el cliente. Lo inyecta el webhook. */
+  telefonoCliente?: string | null;
 }
 
 const TOOLS_BASE = ['consultar_disponibilidad', 'registrar_cita', 'cancelar_cita', 'obtener_catalogo'];
@@ -41,6 +43,19 @@ export function buildSystemPrompt(
   const contextoFecha = formatearFechaActual(fechaActual);
   const tablaDias = generarTablaProximosDias(fechaActual);
 
+  // El teléfono del cliente ya lo conocemos: nos está escribiendo desde él.
+  // Pedírselo es el error clásico que delata a un bot. El backend lo guarda
+  // solo (registrar_cita ni siquiera recibe el teléfono como parámetro), pero
+  // sin esta instrucción el modelo lo pide igual "por las dudas".
+  const bloqueCliente = negocio.telefonoCliente
+    ? `Cliente con el que estás hablando:
+- Teléfono: ${negocio.telefonoCliente} (te está escribiendo desde este número)
+
+REGLA IMPORTANTE: Ya conocés su teléfono, así que NO le pidas el número bajo ninguna circunstancia. Cuando reserves un turno, queda asociado a su número automáticamente — no tenés que hacer nada. Si pregunta a dónde le llega la confirmación o el recordatorio, respondé con naturalidad: "a este mismo número". Lo único que necesitás pedirle es su nombre, y solo si todavía no te lo dijo.
+
+`
+    : '';
+
   const horariosTexto = Object.entries(negocio.horarios)
     .map(([dia, horario]) => `${dia}: ${horario}`)
     .join(', ');
@@ -69,7 +84,7 @@ ${contextoFecha}. Usá esta fecha como referencia para calcular "hoy", "mañana"
 Tabla exacta de los próximos 14 días (fecha = día de la semana). USÁ ESTA TABLA para encontrar la fecha correcta cuando el cliente diga "el viernes que viene", "el próximo lunes", etc. — nunca la calcules mentalmente, buscala acá:
 ${tablaDias}
 
-Horarios de atención: ${horariosTexto || 'no configurados todavía'}.
+${bloqueCliente}Horarios de atención: ${horariosTexto || 'no configurados todavía'}.
 
 Recursos (canchas/espacios) reales de este negocio:
 ${recursosTexto}

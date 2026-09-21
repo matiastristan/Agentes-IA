@@ -194,7 +194,12 @@ export async function handleIncomingMessage(
     return { handled: false };
   }
 
-  const systemPrompt = buildSystemPrompt(negocio, getFechaArgentina());
+  const systemPrompt = buildSystemPrompt(
+    // El teléfono viene del webhook de WhatsApp, no de lo que diga el modelo:
+    // es el remitente real del mensaje.
+    { ...negocio, telefonoCliente: incoming.from },
+    getFechaArgentina()
+  );
   const tools = getToolsForTier(negocio.tier);
 
   const messages = [

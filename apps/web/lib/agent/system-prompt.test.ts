@@ -151,4 +151,27 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('viernes: 10:00-23:00');
     expect(prompt).toContain('Nunca ofrezcas descuentos sin autorización');
   });
+  it('cuando recibe el teléfono del cliente, lo incluye en el contexto del prompt', () => {
+    const prompt = buildSystemPrompt(
+      { ...baseNegocio, telefonoCliente: '5491123456789' },
+      '2026-09-21'
+    );
+    expect(prompt).toContain('5491123456789');
+  });
+
+  it('instruye explícitamente a NO pedirle el teléfono al cliente', () => {
+    const prompt = buildSystemPrompt(
+      { ...baseNegocio, telefonoCliente: '5491123456789' },
+      '2026-09-21'
+    );
+    const lower = prompt.toLowerCase();
+    expect(lower).toContain('no le pidas');
+    expect(lower).toContain('teléfono');
+  });
+
+  it('sin teléfono en contexto (ej. test-chat desde el panel), no rompe ni inventa uno', () => {
+    const prompt = buildSystemPrompt(baseNegocio, '2026-09-21');
+    expect(prompt).not.toContain('undefined');
+    expect(prompt).not.toContain('null');
+  });
 });
