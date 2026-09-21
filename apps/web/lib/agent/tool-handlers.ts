@@ -1,5 +1,5 @@
 import { findRecursoDisponible } from '../turnos/find-recurso-disponible';
-import { expandirRangoAHoras } from './expandir-rango-a-horas';
+import { buildDisponibilidadPorCancha, serviciosDisponibles } from './build-disponibilidad-por-cancha';
 
 interface ToolContext {
   tenantId: string;
@@ -15,12 +15,12 @@ interface ToolResult {
 }
 
 async function consultarDisponibilidad(
-  args: { fecha: string },
+  args: { fecha: string; servicio?: string },
   ctx: ToolContext
 ): Promise<ToolResult> {
   const { data: citas, error: errorCitas } = await ctx.supabase
     .from('citas')
-    .select('hora, estado')
+    .select('recurso_id, hora, estado')
     .eq('tenant_id', ctx.tenantId)
     .eq('fecha', args.fecha);
 
@@ -30,33 +30,56 @@ async function consultarDisponibilidad(
 
   const { data: abonos, error: errorAbonos } = await ctx.supabase
     .from('abonos')
-    .select('hora_inicio, hora_fin, cliente_nombre')
+    .select('recurso_id, hora_inicio, hora_fin')
     .eq('tenant_id', ctx.tenantId)
     .eq('dia_semana', diaSemana)
     .eq('activo', true);
 
   if (errorAbonos) return { error: 'No se pudo consultar la disponibilidad' };
 
-  const citasFormato = (citas ?? []).map((c: { hora: string; estado: string }) => ({
-    tipo: 'cita',
-    hora: c.hora,
-    estado: c.estado,
-  }));
+  const { data: recursos } = await ctx.supabase
+    .from('recursos')
+    .select('id, nombre, subtipo')
+    .eq('tenant_id', ctx.tenantId)
+    .eq('activo', true);
 
-  // Los abonos son clientes mensualizados: ocupan ese horario TODAS las semanas
-  // ese día, aunque no haya una fila en `citas` para esa fecha puntual.
-  // Un abono de 18:00 a 20:00 ocupa DOS horas (18 y 19), no solo la de inicio.
-  // Expandimos el rango completo para que el modelo vea cada hora bloqueada.
-  const abonosFormato = (abonos ?? []).flatMap(
-    (a: { hora_inicio: string; hora_fin: string; cliente_nombre?: string }) =>
-      expandirRangoAHoras(a.hora_inicio, a.hora_fin).map((hora) => ({
-        tipo: 'abono',
-        hora,
-        estado: 'ocupado_por_cliente_mensualizado',
-      }))
-  );
+  const { data: negocio } = await ctx.supabase
+    .from('negocio')
+    .select('horarios')
+    .eq('tenant_id', ctx.tenantId)
+    .single();
 
-  return { data: [...citasFormato, ...abonosFormato] };
+  const DIAS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+  const horarios = (negocio?.horarios ?? {}) as Record<string, string>;
+  const horarioDelDia = horarios[DIAS[diaSemana]];
+
+  // Devolvemos la disponibilidad POR CANCHA, no una lista plana de horas.
+  // Antes se devolvían horas sueltas sin decir a qué cancha pertenecían, así
+  // que el modelo sumaba las ocupaciones de todas las canchas como si fueran
+  // una sola y respondía que no había lugar cuando sí lo había.
+  const porCancha = buildDisponibilidadPorCancha({
+    recursos: recursos ?? [],
+    horario: horarioDelDia,
+    citas: citas ?? [],
+    abonos: abonos ?? [],
+    filtroServicio: args.servicio,
+  });
+
+  // Si el cliente pidió un servicio puntual y no existe ninguna cancha de ese
+  // tipo, hay que distinguirlo de "está todo ocupado": son situaciones muy
+  // distintas para el cliente y merecen respuestas distintas.
+  if (args.servicio && porCancha.length === 0) {
+    return {
+      data: {
+        fecha: args.fecha,
+        servicioInexistente: args.servicio,
+        serviciosDisponibles: serviciosDisponibles(recursos ?? []),
+        canchas: [],
+      },
+    };
+  }
+
+  return { data: { fecha: args.fecha, horarioDelDia: horarioDelDia ?? 'cerrado', canchas: porCancha } };
 }
 
 async function cancelarCita(
@@ -279,7 +302,7 @@ export async function executeToolCall(
 ): Promise<ToolResult> {
   switch (toolName) {
     case 'consultar_disponibilidad':
-      return consultarDisponibilidad(args as { fecha: string }, ctx);
+      return consultarDisponibilidad(args as { fecha: string; servicio?: string }, ctx);
     case 'cancelar_cita':
       return cancelarCita(args as { fecha: string; hora?: string }, ctx);
     case 'registrar_cita':

@@ -16,11 +16,15 @@ const consultar_disponibilidad: ToolDefinition = {
   type: 'function',
   function: {
     name: 'consultar_disponibilidad',
-    description: 'Consulta los horarios disponibles para agendar una cita en una fecha dada.',
+    description: 'Consulta qué horas quedan libres EN CADA CANCHA para una fecha. Devuelve una lista de canchas, cada una con sus horas libres.',
     parameters: {
       type: 'object',
       properties: {
         fecha: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
+        servicio: {
+          type: 'string',
+          description: 'Opcional. Filtra por tipo de cancha cuando el cliente pide algo puntual, por ejemplo "padel" o "futbol". Si el cliente no especifica, omitilo para ver todas.',
+        },
       },
       required: ['fecha'],
     },

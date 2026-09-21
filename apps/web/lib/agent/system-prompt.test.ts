@@ -112,10 +112,12 @@ describe('buildSystemPrompt', () => {
     expect(promptLunes.toLowerCase()).toContain('lunes');
   });
 
-  it('aclara que un resultado de tipo abono también cuenta como horario ocupado', () => {
+  it('explica que la disponibilidad viene POR CANCHA y que no hay que mezclarlas', () => {
     const prompt = buildSystemPrompt(baseNegocio);
-    expect(prompt.toLowerCase()).toContain('abono');
-    expect(prompt.toLowerCase()).toContain('mensualizado');
+    const lower = prompt.toLowerCase();
+    expect(lower).toContain('horaslibres');
+    expect(lower).toContain('mensualizados');
+    expect(lower).toContain('nunca mezcles');
   });
 
   it('incluye la lista real de recursos (canchas) cuando está cargada', () => {
@@ -215,5 +217,13 @@ describe('buildSystemPrompt', () => {
     const prompt = buildSystemPrompt(baseNegocio);
     const lower = prompt.toLowerCase();
     expect(lower).toContain('un solo mensaje');
+  });
+  it('instruye a responder con los servicios que SÍ existen cuando piden un deporte inexistente', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    const lower = prompt.toLowerCase();
+    expect(lower).toContain('servicioinexistente');
+    expect(lower).toContain('serviciosdisponibles');
+    // No debe confundirse con falta de disponibilidad
+    expect(prompt).toContain('NO digas que no hay disponibilidad');
   });
 });

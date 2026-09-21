@@ -72,29 +72,39 @@ describe('executeToolCall — aislamiento multi-tenant', () => {
     expect(eqCalls.some((c) => c.args[0] === 'tenant_id' && c.args[1] === TENANT_A)).toBe(true);
   });
 
-  it('consultar_disponibilidad también revisa los abonos (mensualizados) de ese día de la semana', async () => {
+  it('consultar_disponibilidad devuelve las horas libres agrupadas POR CANCHA', async () => {
     const { client } = createTableAwareMock({
-      'citas:select': { data: [], error: null },
+      'citas:select': { data: [{ recurso_id: 'p1', hora: '17:00:00', estado: 'pendiente' }], error: null },
       'abonos:select': {
-        data: [{ hora_inicio: '18:00:00', hora_fin: '20:00:00', cliente_nombre: 'Matías' }],
+        data: [{ recurso_id: 'p1', hora_inicio: '18:00:00', hora_fin: '20:00:00' }],
         error: null,
       },
+      'recursos:select': {
+        data: [
+          { id: 'p1', nombre: 'Cancha Padel 1', subtipo: 'padel' },
+          { id: 'p2', nombre: 'Cancha Padel 2', subtipo: 'padel' },
+        ],
+        error: null,
+      },
+      'negocio:select': { data: { horarios: { lunes: '17:00-21:00' } }, error: null },
     });
 
-    // Viernes 25/09/2026
-    const result = await executeToolCall('consultar_disponibilidad', { fecha: '2026-09-25' }, {
+    // 2026-09-21 es lunes
+    const result = await executeToolCall('consultar_disponibilidad', { fecha: '2026-09-21' }, {
       tenantId: TENANT_A,
       tier: 'base',
       supabase: client,
       phone: '5491100000000',
     });
 
-    const data = result.data as Array<{ tipo: string; hora: string }>;
-    // Un abono de 18 a 20 ocupa DOS horas, no solo la de inicio
-    expect(data.some((d) => d.tipo === 'abono' && d.hora === '18:00')).toBe(true);
-    expect(data.some((d) => d.tipo === 'abono' && d.hora === '19:00')).toBe(true);
-    // Las 20:00 ya queda libre (el fin del rango es exclusivo)
-    expect(data.some((d) => d.tipo === 'abono' && d.hora === '20:00')).toBe(false);
+    const data = result.data as { canchas: Array<{ cancha: string; horasLibres: string[] }> };
+    const padel1 = data.canchas.find((c) => c.cancha === 'Cancha Padel 1')!;
+    const padel2 = data.canchas.find((c) => c.cancha === 'Cancha Padel 2')!;
+
+    // Padel 1: 17 ocupada por cita, 18 y 19 por el abono -> queda 20
+    expect(padel1.horasLibres).toEqual(['20:00']);
+    // Padel 2 está intacta: la ocupación de Padel 1 no la afecta
+    expect(padel2.horasLibres).toEqual(['17:00', '18:00', '19:00', '20:00']);
   });
 
   it('cancelar_cita cancela el turno del cliente que escribe (matcheado por su teléfono), no el de otro', async () => {
