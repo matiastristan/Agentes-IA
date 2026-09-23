@@ -1,4 +1,5 @@
 import { horaDentroDeRango } from './hora-dentro-de-rango';
+import { expandirRangoAHoras } from '../agent/expandir-rango-a-horas';
 
 interface Recurso {
   id: string;
@@ -59,16 +60,10 @@ interface BuildCalendarioSlotsInput {
 }
 
 function generarHorasEnRango(rango: string | undefined): string[] {
-  if (!rango) return [];
+  if (!rango || !rango.includes('-')) return [];
   const [inicio, fin] = rango.split('-');
-  const [horaInicio] = inicio.split(':').map(Number);
-  const [horaFin] = fin.split(':').map(Number);
-
-  const horas: string[] = [];
-  for (let h = horaInicio; h < horaFin; h++) {
-    horas.push(`${String(h).padStart(2, '0')}:00`);
-  }
-  return horas;
+  // Misma regla que usa el agente: calendario y WhatsApp siempre coinciden.
+  return expandirRangoAHoras(inicio, fin);
 }
 
 function sumarMinutos(hora: string, minutos: number): string {

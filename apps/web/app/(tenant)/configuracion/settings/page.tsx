@@ -11,7 +11,7 @@ export default async function ConfiguracionSettingsPage() {
 
   const { data: negocio } = await supabase
     .from('negocio')
-    .select('tono_voz, horarios, instrucciones_adicionales')
+    .select('tono_voz, horarios, instrucciones_adicionales, recordatorios_activos')
     .eq('tenant_id', user!.id)
     .single();
 
@@ -29,6 +29,7 @@ export default async function ConfiguracionSettingsPage() {
           tonoVozActual={negocio?.tono_voz ?? 'casual'}
           horariosActuales={(negocio?.horarios as Record<string, string>) ?? {}}
           instruccionesActuales={negocio?.instrucciones_adicionales ?? ''}
+          recordatoriosActivosActual={negocio?.recordatorios_activos ?? false}
         />
       </div>
     </main>

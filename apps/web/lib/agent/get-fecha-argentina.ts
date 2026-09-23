@@ -6,3 +6,9 @@ export function getFechaArgentina(now: Date = new Date()): string {
   const argentinaTime = new Date(now.getTime() - 3 * 60 * 60 * 1000);
   return argentinaTime.toISOString().slice(0, 10);
 }
+
+/** Hora actual en Argentina (UTC-3 fijo), formato HH:MM. */
+export function getHoraArgentina(now: Date = new Date()): string {
+  const argentinaTime = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+  return argentinaTime.toISOString().slice(11, 16);
+}

@@ -52,3 +52,28 @@ describe('getToolsForTier', () => {
     expect(names).toContain('registrar_venta');
   });
 });
+
+describe('contrato de registrar_cita', () => {
+  const def = getToolsForTier('base').find((t) => t.function.name === 'registrar_cita')!;
+  const params = def.function.parameters as {
+    properties: Record<string, unknown>;
+    required: string[];
+  };
+
+  it('servicio_id es obligatorio (sin él la reserva quedaba sin cancha)', () => {
+    expect(params.required).toContain('servicio_id');
+  });
+
+  it('acepta cantidad_horas para reservar varias horas en una sola llamada', () => {
+    expect(params.properties).toHaveProperty('cantidad_horas');
+  });
+
+  it('NO tiene ningún parámetro de teléfono: el teléfono sale siempre del remitente real', () => {
+    const nombres = Object.keys(params.properties).join(' ').toLowerCase();
+    expect(nombres).not.toMatch(/phone|telefono|customer_id/);
+  });
+
+  it('NO permite pasar tenant_id: el negocio sale siempre del contexto verificado', () => {
+    expect(params.properties).not.toHaveProperty('tenant_id');
+  });
+});

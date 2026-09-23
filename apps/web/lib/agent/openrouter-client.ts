@@ -2,9 +2,10 @@ import type { ToolDefinition } from './tools';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string;
+  // null es válido (y habitual) en un mensaje del asistente que solo pide herramientas
+  content: string | null;
   tool_call_id?: string;
-  tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>;
+  tool_calls?: Array<{ id: string; type?: 'function'; function: { name: string; arguments: string } }>;
 }
 
 interface CallOpenRouterParams {

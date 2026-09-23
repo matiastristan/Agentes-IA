@@ -35,19 +35,27 @@ const registrar_cita: ToolDefinition = {
   type: 'function',
   function: {
     name: 'registrar_cita',
-    description: 'Registra una cita nueva para un cliente en una fecha y hora específicas.',
+    description:
+      'Reserva un turno en una cancha. Verifica sola la disponibilidad (turnos, mensualizados y horario de atención) antes de guardar. ' +
+      'Para varias horas seguidas usá cantidad_horas en UNA sola llamada: se reservan todas juntas o ninguna. ' +
+      'Si devuelve error, NO se reservó nada. El teléfono del cliente se asocia solo: no lo pidas ni lo pases.',
     parameters: {
       type: 'object',
       properties: {
         customer_name: { type: 'string', description: 'Nombre del cliente' },
         fecha: { type: 'string', description: 'Fecha en formato YYYY-MM-DD' },
-        hora: { type: 'string', description: 'Hora en formato HH:MM' },
+        hora: { type: 'string', description: 'Hora de INICIO en formato HH:MM, en punto (ej. 19:00)' },
         servicio_id: {
           type: 'string',
-          description: 'El "id" del servicio elegido, tal como aparece en el catálogo. IMPORTANTE: pasalo siempre que el cliente haya elegido un servicio — sin esto, la reserva no queda asignada a ninguna cancha física y no va a aparecer bien en el calendario del negocio.',
+          description: 'El "id" de la cancha elegida, tal como figura en el catálogo.',
+        },
+        cantidad_horas: {
+          type: 'integer',
+          description:
+            'Cantidad de horas consecutivas desde la hora de inicio (1 a 4). Por defecto 1. "De 19 a 21" = hora 19:00 con cantidad_horas 2.',
         },
       },
-      required: ['customer_name', 'fecha', 'hora'],
+      required: ['customer_name', 'fecha', 'hora', 'servicio_id'],
     },
   },
 };
@@ -56,12 +64,17 @@ const cancelar_cita: ToolDefinition = {
   type: 'function',
   function: {
     name: 'cancelar_cita',
-    description: 'Cancela un turno existente del cliente que está escribiendo (se identifica por su propio número de WhatsApp, nunca canceles el turno de otra persona).',
+    description:
+      'Cancela un turno del cliente que está escribiendo (se identifica por su propio número: nunca puede cancelar el de otra persona). ' +
+      'Cancela el turno COMPLETO, aunque sea de varias horas.',
     parameters: {
       type: 'object',
       properties: {
         fecha: { type: 'string', description: 'Fecha del turno a cancelar, en formato YYYY-MM-DD' },
-        hora: { type: 'string', description: 'Hora del turno, en formato HH:MM. Opcional — si el cliente tiene un solo turno ese día, no hace falta.' },
+        hora: {
+          type: 'string',
+          description: 'Hora del turno (HH:MM). Solo hace falta si el cliente tiene varios turnos ese día.',
+        },
       },
       required: ['fecha'],
     },
@@ -115,15 +128,26 @@ const reprogramar_cita: ToolDefinition = {
   type: 'function',
   function: {
     name: 'reprogramar_cita',
-    description: 'Reprograma una cita existente a una nueva fecha y hora, validando las reglas de anticipación del negocio.',
+    description:
+      'Mueve un turno del cliente a otra fecha u hora. Identifica el turno por la fecha actual (y la hora, si el cliente tiene más de uno ese día). ' +
+      'Mueve el turno COMPLETO: si era de dos horas, sigue siendo de dos horas. ' +
+      'Si el horario nuevo no se puede tomar, el turno original NO se toca: nunca le digas al cliente que perdió su turno.',
     parameters: {
       type: 'object',
       properties: {
-        cita_id: { type: 'string', description: 'ID de la cita a reprogramar' },
+        fecha_actual: { type: 'string', description: 'Fecha del turno que ya tiene, en formato YYYY-MM-DD' },
+        hora_actual: {
+          type: 'string',
+          description: 'Hora del turno actual (HH:MM). Solo hace falta si el cliente tiene varios turnos ese día.',
+        },
         nueva_fecha: { type: 'string', description: 'Nueva fecha en formato YYYY-MM-DD' },
-        nueva_hora: { type: 'string', description: 'Nueva hora en formato HH:MM' },
+        nueva_hora: { type: 'string', description: 'Nueva hora de inicio en formato HH:MM, en punto' },
+        nuevo_servicio_id: {
+          type: 'string',
+          description: 'Solo si además quiere cambiar de cancha: el id de la cancha nueva, como figura en el catálogo.',
+        },
       },
-      required: ['cita_id', 'nueva_fecha', 'nueva_hora'],
+      required: ['fecha_actual', 'nueva_fecha', 'nueva_hora'],
     },
   },
 };

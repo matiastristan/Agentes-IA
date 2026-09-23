@@ -316,4 +316,291 @@ describe('handleIncomingMessage', () => {
     );
     expect(guardadoUser[0].wamid).toBe('wamid.ENTRANTE123');
   });
+  // --- Bucle de herramientas ------------------------------------------------
+  describe('bucle de herramientas', () => {
+    const MSG = { phoneNumberId: 'phone-a', from: '5491100000000', text: 'Quiero padel mañana a las 19' };
+
+    const pedirHerramientas = (...calls: Array<{ id: string; name: string; args?: string }>) => ({
+      message: {
+        role: 'assistant',
+        content: null,
+        tool_calls: calls.map((c) => ({
+          id: c.id,
+          type: 'function',
+          function: { name: c.name, arguments: c.args ?? '{}' },
+        })),
+      },
+    });
+    const responderTexto = (content: string | null) => ({ message: { role: 'assistant', content } });
+
+    const RESERVA_OK = {
+      data: {
+        reservado: true,
+        cliente: 'Josue',
+        cancha: 'Cancha Padel 2',
+        fecha: '2026-09-21',
+        horas: ['19:00', '20:00'],
+        precioPorHora: 25000,
+        precioTotal: 50000,
+      },
+    };
+
+    it('puede consultar disponibilidad y reservar en el MISMO mensaje (dos vueltas encadenadas)', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'consultar_disponibilidad', args: '{"fecha":"2026-09-21"}' }))
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c2', name: 'registrar_cita', args: '{"customer_name":"Josue"}' }))
+          .mockResolvedValueOnce(responderTexto('¡Listo Josue! Te anoté.')),
+        executeToolCall: vi.fn().mockResolvedValueOnce({ data: { canchas: [] } }).mockResolvedValueOnce(RESERVA_OK),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect(deps.executeToolCall).toHaveBeenCalledTimes(2);
+      expect((deps.executeToolCall as any).mock.calls[0][0]).toBe('consultar_disponibilidad');
+      expect((deps.executeToolCall as any).mock.calls[1][0]).toBe('registrar_cita');
+      expect(r.responseText).toBe('¡Listo Josue! Te anoté.');
+    });
+
+    it('ejecuta TODAS las herramientas pedidas en una misma respuesta, en orden (antes solo la primera)', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(
+            pedirHerramientas(
+              { id: 'c1', name: 'registrar_cita', args: '{"hora":"19:00"}' },
+              { id: 'c2', name: 'registrar_cita', args: '{"hora":"20:00"}' }
+            )
+          )
+          .mockResolvedValueOnce(responderTexto('Listo, 19 y 20.')),
+        executeToolCall: vi.fn().mockResolvedValue(RESERVA_OK),
+      });
+
+      await handleIncomingMessage(MSG, deps);
+
+      const llamadas = (deps.executeToolCall as any).mock.calls;
+      expect(llamadas).toHaveLength(2);
+      expect(llamadas[0][1]).toEqual({ hora: '19:00' });
+      expect(llamadas[1][1]).toEqual({ hora: '20:00' });
+    });
+
+    it('le devuelve al modelo un resultado por CADA herramienta, con su tool_call_id (protocolo)', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(
+            pedirHerramientas({ id: 'c1', name: 'obtener_catalogo' }, { id: 'c2', name: 'consultar_disponibilidad' })
+          )
+          .mockResolvedValueOnce(responderTexto('ok')),
+        executeToolCall: vi.fn().mockResolvedValue({ data: {} }),
+      });
+
+      await handleIncomingMessage(MSG, deps);
+
+      const segundaLlamada = (deps.callOpenRouter as any).mock.calls[1][0].messages;
+      const asistente = segundaLlamada.find((m: any) => m.role === 'assistant' && m.tool_calls);
+      expect(asistente.tool_calls.map((t: any) => t.id)).toEqual(['c1', 'c2']);
+      const resultados = segundaLlamada.filter((m: any) => m.role === 'tool');
+      expect(resultados.map((m: any) => m.tool_call_id)).toEqual(['c1', 'c2']);
+      // El mensaje del asistente va ANTES que los resultados de sus herramientas
+      expect(segundaLlamada.indexOf(asistente)).toBeLessThan(segundaLlamada.indexOf(resultados[0]));
+    });
+
+    it('si el modelo manda argumentos que no son JSON válido, no explota: le devuelve el error al modelo', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'registrar_cita', args: '{hora: 19' }))
+          .mockResolvedValueOnce(responderTexto('Perdón, ¿a qué hora querías?')),
+        executeToolCall: vi.fn(),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect(deps.executeToolCall).not.toHaveBeenCalled();
+      const resultado = (deps.callOpenRouter as any).mock.calls[1][0].messages.find((m: any) => m.role === 'tool');
+      expect(JSON.parse(resultado.content).error).toBeDefined();
+      expect(r.responseText).toBe('Perdón, ¿a qué hora querías?');
+    });
+
+    it('si una herramienta tira una excepción, el modelo recibe un error en vez de quedar mudo', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'consultar_disponibilidad' }))
+          .mockResolvedValueOnce(responderTexto('Tuve un problema, ¿probamos de nuevo?')),
+        executeToolCall: vi.fn().mockRejectedValue(new Error('db caída')),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      const resultado = (deps.callOpenRouter as any).mock.calls[1][0].messages.find((m: any) => m.role === 'tool');
+      expect(JSON.parse(resultado.content).error).toBeDefined();
+      expect(r.responseText).toBe('Tuve un problema, ¿probamos de nuevo?');
+    });
+
+    it('manda UN SOLO WhatsApp por mensaje del cliente, aunque haya varias vueltas', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'consultar_disponibilidad' }))
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c2', name: 'registrar_cita' }))
+          .mockResolvedValueOnce(responderTexto('Listo')),
+        executeToolCall: vi.fn().mockResolvedValueOnce({ data: {} }).mockResolvedValueOnce(RESERVA_OK),
+      });
+
+      await handleIncomingMessage(MSG, deps);
+
+      expect(deps.sendWhatsAppMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('si el modelo pide herramientas sin parar, corta en el límite de vueltas y responde algo (nunca silencio)', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi.fn().mockResolvedValue(pedirHerramientas({ id: 'cx', name: 'obtener_catalogo' })),
+        executeToolCall: vi.fn().mockResolvedValue({ data: {} }),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect((deps.callOpenRouter as any).mock.calls.length).toBeLessThanOrEqual(5);
+      expect(deps.sendWhatsAppMessage).toHaveBeenCalledTimes(1);
+      expect((r.responseText ?? "").length).toBeGreaterThan(0);
+    });
+
+    it('si la reserva se hizo pero después el modelo FALLA, el cliente recibe la confirmación real armada por código', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'registrar_cita' }))
+          .mockRejectedValueOnce(new OpenRouterLimitError('cupo', true)),
+        executeToolCall: vi.fn().mockResolvedValue(RESERVA_OK),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect(r.responseText).toContain('Cancha Padel 2');
+      expect(r.responseText).toContain('de 19:00 a 21:00');
+      // No le decimos "no puedo responderte" a alguien cuyo turno SÍ quedó guardado
+      expect(r.responseText).not.toContain('no puedo responderte');
+    });
+
+    it('si la reserva se hizo y se agotan las vueltas, también recibe la confirmación real', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'registrar_cita' }))
+          .mockResolvedValue(pedirHerramientas({ id: 'cx', name: 'obtener_catalogo' })),
+        executeToolCall: vi.fn().mockResolvedValueOnce(RESERVA_OK).mockResolvedValue({ data: {} }),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect(r.responseText).toContain('Cancha Padel 2');
+    });
+
+    it('una reserva RECHAZADA nunca dispara la confirmación de respaldo', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'registrar_cita' }))
+          .mockRejectedValueOnce(new Error('red')),
+        executeToolCall: vi.fn().mockResolvedValue({ error: 'Esa cancha ya está ocupada', motivo: 'ocupado' }),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect(r.responseText).not.toContain('Te dejé anotado');
+    });
+
+    it('si el modelo responde texto vacío, no manda un WhatsApp vacío', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi.fn().mockResolvedValue(responderTexto('   ')),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      expect((r.responseText ?? "").trim().length).toBeGreaterThan(0);
+      const enviado = (deps.sendWhatsAppMessage as any).mock.calls[0][0].text;
+      expect(enviado.trim().length).toBeGreaterThan(0);
+    });
+
+    it('si se pasa del tiempo máximo, deja de llamar al modelo y responde (el servidor corta a los 60s)', async () => {
+      let reloj = 0;
+      const deps = makeDeps({
+        ahora: () => reloj,
+        callOpenRouter: vi.fn().mockImplementation(async () => {
+          reloj += 20_000; // cada vuelta tarda 20s
+          return pedirHerramientas({ id: 'cx', name: 'obtener_catalogo' });
+        }),
+        executeToolCall: vi.fn().mockResolvedValue({ data: {} }),
+      });
+
+      const r = await handleIncomingMessage(MSG, deps);
+
+      // Con 20s por vuelta y un presupuesto de 45s, no puede hacer más de 3 llamadas
+      expect((deps.callOpenRouter as any).mock.calls.length).toBeLessThanOrEqual(3);
+      expect(deps.sendWhatsAppMessage).toHaveBeenCalledTimes(1);
+      expect((r.responseText ?? "").length).toBeGreaterThan(0);
+    });
+
+    it('guarda qué herramientas se usaron en el mensaje del asistente', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'consultar_disponibilidad' }))
+          .mockResolvedValueOnce(pedirHerramientas({ id: 'c2', name: 'registrar_cita' }))
+          .mockResolvedValueOnce(responderTexto('Listo')),
+        executeToolCall: vi.fn().mockResolvedValueOnce({ data: {} }).mockResolvedValueOnce(RESERVA_OK),
+      });
+
+      await handleIncomingMessage(MSG, deps);
+
+      const guardado = (deps.saveMessage as any).mock.calls.find((c: any[]) => c[0].role === 'assistant');
+      expect(guardado[0].toolCalled).toBe('consultar_disponibilidad,registrar_cita');
+    });
+    it('normaliza tool_calls incompletos de modelos gratuitos (sin id o sin type) antes de reenviarlos', async () => {
+      const deps = makeDeps({
+        callOpenRouter: vi
+          .fn()
+          .mockResolvedValueOnce({
+            message: {
+              role: 'assistant',
+              content: null,
+              tool_calls: [{ function: { name: 'obtener_catalogo', arguments: '{}' } }], // sin id ni type
+            },
+          })
+          .mockResolvedValueOnce(responderTexto('ok')),
+        executeToolCall: vi.fn().mockResolvedValue({ data: {} }),
+      });
+
+      await handleIncomingMessage(MSG, deps);
+
+      const mensajes = (deps.callOpenRouter as any).mock.calls[1][0].messages;
+      const asistente = mensajes.find((m: any) => m.role === 'assistant' && m.tool_calls);
+      const resultado = mensajes.find((m: any) => m.role === 'tool');
+      expect(asistente.tool_calls[0].id).toBeTruthy();
+      expect(asistente.tool_calls[0].type).toBe('function');
+      // El resultado responde exactamente al id asignado
+      expect(resultado.tool_call_id).toBe(asistente.tool_calls[0].id);
+    });
+    it('argumentos JSON válidos pero que no son un objeto ("null", "5", "[]") se tratan como error', async () => {
+      for (const argsRaros of ['null', '5', '[]', '"texto"']) {
+        const deps = makeDeps({
+          callOpenRouter: vi
+            .fn()
+            .mockResolvedValueOnce(pedirHerramientas({ id: 'c1', name: 'registrar_cita', args: argsRaros }))
+            .mockResolvedValueOnce(responderTexto('ok')),
+          executeToolCall: vi.fn(),
+        });
+
+        await handleIncomingMessage(MSG, deps);
+
+        expect(deps.executeToolCall).not.toHaveBeenCalled();
+        const resultado = (deps.callOpenRouter as any).mock.calls[1][0].messages.find((m: any) => m.role === 'tool');
+        expect(typeof resultado.content).toBe('string');
+        expect(JSON.parse(resultado.content).error).toBeDefined();
+      }
+    });
+  });
 });

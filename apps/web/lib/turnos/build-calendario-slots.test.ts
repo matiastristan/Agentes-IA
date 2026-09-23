@@ -136,4 +136,32 @@ describe('buildCalendarioSlots', () => {
     const slot = slots[0].horas.find((h) => h.hora === '17:00');
     expect(slot?.ocupado).toBe(false);
   });
+  it('un horario que cierra a medianoche (17:00-00:00) muestra los turnos hasta las 23 (antes no mostraba ninguno)', () => {
+    const slots = buildCalendarioSlots({
+      fecha: '2026-09-25',
+      diaSemana: 5,
+      horarioDelDia: '17:00-00:00',
+      recursos: [{ id: 'r1', nombre: 'Cancha', subtipo: null }],
+      subtipoFiltro: null,
+      citas: [],
+      abonos: [],
+    } as never);
+    const horas = (slots as any)[0].horas.map((h: any) => h.hora);
+    expect(horas[0]).toBe('17:00');
+    expect(horas[horas.length - 1]).toBe('23:00');
+  });
+
+  it('un horario hasta las 23:59 incluye el turno de las 23 (coincide con lo que ofrece el agente)', () => {
+    const slots = buildCalendarioSlots({
+      fecha: '2026-09-25',
+      diaSemana: 5,
+      horarioDelDia: '17:00-23:59',
+      recursos: [{ id: 'r1', nombre: 'Cancha', subtipo: null }],
+      subtipoFiltro: null,
+      citas: [],
+      abonos: [],
+    } as never);
+    const horas = (slots as any)[0].horas.map((h: any) => h.hora);
+    expect(horas).toContain('23:00');
+  });
 });

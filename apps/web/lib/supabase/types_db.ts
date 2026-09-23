@@ -479,6 +479,7 @@ export type Database = {
           meta_connection_status: string
           nombre: string
           phone_number_id: string
+          recordatorios_activos: boolean
           plan_ciclo_facturacion: string
           plan_estado_pago: string
           plan_fecha_alta: string | null
@@ -509,6 +510,7 @@ export type Database = {
           meta_connection_status?: string
           nombre: string
           phone_number_id: string
+          recordatorios_activos?: boolean
           plan_ciclo_facturacion?: string
           plan_estado_pago?: string
           plan_fecha_alta?: string | null
@@ -539,6 +541,7 @@ export type Database = {
           meta_connection_status?: string
           nombre?: string
           phone_number_id?: string
+          recordatorios_activos?: boolean
           plan_ciclo_facturacion?: string
           plan_estado_pago?: string
           plan_fecha_alta?: string | null
@@ -675,6 +678,45 @@ export type Database = {
             referencedColumns: ["tenant_id"]
           },
         ]
+      }
+      recordatorios_enviados: {
+        Row: {
+          abono_id: string | null
+          canal: string
+          cita_id: string | null
+          enviado_at: string
+          error: string | null
+          fecha: string
+          id: string
+          status: string
+          telefono: string
+          tenant_id: string
+        }
+        Insert: {
+          abono_id?: string | null
+          canal: string
+          cita_id?: string | null
+          enviado_at?: string
+          error?: string | null
+          fecha: string
+          id?: string
+          status: string
+          telefono: string
+          tenant_id: string
+        }
+        Update: {
+          abono_id?: string | null
+          canal?: string
+          cita_id?: string | null
+          enviado_at?: string
+          error?: string | null
+          fecha?: string
+          id?: string
+          status?: string
+          telefono?: string
+          tenant_id?: string
+        }
+        Relationships: []
       }
       recursos: {
         Row: {

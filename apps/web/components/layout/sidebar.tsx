@@ -11,6 +11,7 @@ import {
   Gift,
   Settings,
   Palette,
+  Inbox,
   MessageSquare,
   Flame,
   LogOut,
@@ -51,6 +52,7 @@ export function Sidebar({
     ...(tipoCrm === 'turnos' ? [{ href: '/configuracion/stock', label: 'Stock', icon: Package }] : []),
     { href: '/configuracion/settings', label: 'Ajustes del agente', icon: Settings },
     { href: '/configuracion/apariencia', label: 'Apariencia', icon: Palette },
+    { href: '/configuracion/conversaciones', label: 'Conversaciones', icon: Inbox },
     { href: '/configuracion/test-chat', label: 'Probar agente', icon: MessageSquare },
     { href: '/configuracion/alertas', label: 'Alertas', icon: Flame },
   ];

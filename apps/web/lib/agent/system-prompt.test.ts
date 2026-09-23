@@ -231,4 +231,38 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('textoParaCliente');
     expect(prompt.toLowerCase()).toContain('nunca muestres solo una cancha');
   });
+  it('instruye a reservar varias horas con cantidad_horas en una sola llamada', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    expect(prompt).toContain('cantidad_horas');
+  });
+
+  it('instruye a confirmar SOLO lo que la herramienta confirmó (anti confirmación falsa)', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    expect(prompt).toContain('"reservado": true');
+    expect(prompt.toLowerCase()).toContain('no se reservó nada');
+  });
+
+  it('permite encadenar consulta y reserva en el mismo mensaje', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    expect(prompt.toLowerCase()).toContain('en el mismo turno');
+  });
+  it('lista reprogramar_cita entre las herramientas del plan base', () => {
+    expect(buildSystemPrompt(baseNegocio)).toContain('reprogramar_cita');
+  });
+
+  it('instruye a mover el turno en vez de cancelar y volver a reservar', () => {
+    const prompt = buildSystemPrompt(baseNegocio);
+    expect(prompt.toLowerCase()).toContain('no canceles y vuelvas a reservar');
+    expect(prompt).toContain('"reprogramado": true');
+  });
+  it('si los recordatorios NO están activos, prohíbe prometerlos', () => {
+    const prompt = buildSystemPrompt({ ...baseNegocio, telefonoCliente: '549387', recordatoriosActivos: false });
+    expect(prompt).toContain('NO existen recordatorios automáticos');
+  });
+
+  it('si los recordatorios están activos, habilita mencionarlos', () => {
+    const prompt = buildSystemPrompt({ ...baseNegocio, telefonoCliente: '549387', recordatoriosActivos: true });
+    expect(prompt).toContain('recordatorio automático');
+    expect(prompt).not.toContain('NO existen recordatorios');
+  });
 });

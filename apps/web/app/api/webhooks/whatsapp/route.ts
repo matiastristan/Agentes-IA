@@ -154,6 +154,7 @@ async function procesarMensaje({
           catalogo,
           recursos: recursos ?? [],
           instruccionesAdicionales: data.instrucciones_adicionales,
+          recordatoriosActivos: data.recordatorios_activos ?? false,
         } as never;
       },
       findOrCreateConversation: async (tenantId, phoneFrom) => {

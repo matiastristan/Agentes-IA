@@ -1,6 +1,7 @@
 import { buildSystemPrompt } from './system-prompt';
 import { getFechaArgentina } from './get-fecha-argentina';
 import { OpenRouterLimitError } from './openrouter-client';
+import { textoConfirmacionReserva, type ReservaConfirmada } from './texto-confirmacion-reserva';
 import { getToolsForTier } from './tools';
 import { categorizeTemperatura } from './categorize-temperature';
 import { shouldTriggerLeadAlert } from '../notifications/should-trigger-lead-alert';
@@ -18,6 +19,7 @@ interface NegocioLookup {
   email_alertas?: string | null;
   instruccionesAdicionales?: string | null;
   recursos?: Array<{ nombre: string; subtipo: string | null }>;
+  recordatoriosActivos?: boolean;
 }
 
 interface IncomingMessage {
@@ -29,6 +31,8 @@ interface IncomingMessage {
 }
 
 interface Deps {
+  /** Reloj en milisegundos. Solo se pasa en tests; en producción es Date.now. */
+  ahora?: () => number;
   findNegocioByPhoneNumberId: (phoneNumberId: string) => Promise<NegocioLookup | null>;
   findOrCreateConversation: (
     tenantId: string,
@@ -78,6 +82,19 @@ interface Deps {
 // gratuitos que aplica OpenRouter es por CUENTA, no por modelo, así que esta
 // lista sirve para resistir caídas puntuales de un proveedor, no para estirar
 // el cupo. Para eso hay que pasar a modelos pagos.
+// Máximo de llamadas al modelo por mensaje del cliente. Alcanza de sobra para
+// consultar -> reservar -> responder, y corta un modelo que se quede en loop.
+const MAX_VUELTAS = 5;
+
+// Presupuesto de tiempo por mensaje. La función del servidor corta a los 60s
+// (maxDuration del webhook): dejamos margen para enviar la respuesta final.
+const PRESUPUESTO_MS = 45_000;
+
+const AVISO_CUPO =
+  'Perdón, en este momento no puedo responderte automáticamente. Ya le avisé al equipo y te contestan a la brevedad. 🙏';
+const AVISO_ERROR =
+  'Perdón, tuve un problema técnico para responderte. Ya le avisé al equipo y te contestan a la brevedad. 🙏';
+
 export const FREE_MODELS = [
   'openrouter/free',
   'z-ai/glm-5.2:free',
@@ -211,74 +228,122 @@ export async function handleIncomingMessage(
     { role: 'user' as const, content: incoming.text },
   ];
 
-  let message;
-  try {
-    ({ message } = await deps.callOpenRouter({ models: FREE_MODELS, messages, tools }));
-  } catch (err) {
-    // Si el modelo no pudo responder (cupo agotado, red caída, etc.) el cliente
-    // NO puede quedar sin respuesta: eso es lo peor que puede pasar en WhatsApp.
-    // Le mandamos un mensaje humano, sin detalles técnicos.
-    const esCupo = err instanceof OpenRouterLimitError && err.esLimiteAgotado;
-    const aviso = esCupo
-      ? 'Perdón, en este momento no puedo responderte automáticamente. Ya le avisé al equipo y te contestan a la brevedad. 🙏'
-      : 'Perdón, tuve un problema técnico para responderte. Ya le avisé al equipo y te contestan a la brevedad. 🙏';
+  // --- Bucle de herramientas -------------------------------------------------
+  // El modelo puede encadenar acciones (consultar -> reservar) y pedir varias en
+  // una misma respuesta. Ejecutamos TODAS, en orden, y le devolvemos el
+  // resultado de cada una hasta que responda con texto. Antes se ejecutaba solo
+  // la primera acción y una sola vuelta: una reserva de dos horas registraba una
+  // sola, y "consultar y reservar" en el mismo mensaje era imposible.
+  const reloj = deps.ahora ?? Date.now;
+  const inicio = reloj();
+  const conversacion: any[] = [...messages];
+  const herramientasUsadas: string[] = [];
+  // Reservas que SÍ quedaron guardadas en este turno. Si el modelo falla después,
+  // con esto armamos la confirmación real en vez de dejar al cliente a ciegas.
+  const reservasHechas: ReservaConfirmada[] = [];
 
+  const toolCalled = () => (herramientasUsadas.length ? herramientasUsadas.join(',') : undefined);
+
+  // Respuesta de emergencia cuando el modelo no puede cerrar la conversación.
+  const respuestaDeRespaldo = (esCupo: boolean) =>
+    reservasHechas.length > 0
+      ? reservasHechas.map(textoConfirmacionReserva).join('\n')
+      : esCupo
+        ? AVISO_CUPO
+        : AVISO_ERROR;
+
+  const responder = async (texto: string) => {
     const sendError = await sendAndSaveAssistantMessage(
       negocio,
       conversation.id,
-      aviso,
-      incoming,
-      deps
-    );
-
-    return { handled: true, responseText: aviso, sendError };
-  }
-
-  // Si el modelo pidió usar una tool, la ejecutamos y le devolvemos el resultado
-  // para que genere la respuesta final en texto (segundo round-trip).
-  if (message.tool_calls?.length) {
-    const toolCall = message.tool_calls[0];
-    const args = JSON.parse(toolCall.function.arguments || '{}');
-
-    const toolResult = await deps.executeToolCall(toolCall.function.name, args, {
-      tenantId: negocio.tenant_id,
-      tier: negocio.tier,
-      phone: incoming.from,
-    });
-
-    const followUp = await deps.callOpenRouter({
-      models: FREE_MODELS,
-      messages: [
-        ...messages,
-        message,
-        {
-          role: 'tool' as const,
-          tool_call_id: toolCall.id,
-          content: JSON.stringify(toolResult),
-        },
-      ],
-      tools,
-    });
-
-    const sendError = await sendAndSaveAssistantMessage(
-      negocio,
-      conversation.id,
-      followUp.message.content,
+      texto,
       incoming,
       deps,
-      toolCall.function.name
+      toolCalled()
+    );
+    return { handled: true, responseText: texto, sendError };
+  };
+
+  for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
+    if (vuelta > 0 && reloj() - inicio > PRESUPUESTO_MS) break;
+
+    let respuesta;
+    try {
+      respuesta = await deps.callOpenRouter({ models: FREE_MODELS, messages: conversacion, tools });
+    } catch (err) {
+      // Cupo agotado, red caída, etc. El cliente NUNCA queda sin respuesta.
+      const esCupo = err instanceof OpenRouterLimitError && err.esLimiteAgotado;
+      return responder(respuestaDeRespaldo(esCupo));
+    }
+
+    const msg = respuesta.message ?? {};
+    // Normalizamos cada tool_call: algunos modelos gratuitos los devuelven sin
+    // id o sin type, y el proveedor rechaza el reenvío si falta alguno de los dos.
+    const toolCalls: any[] = (Array.isArray(msg.tool_calls) ? msg.tool_calls : []).map(
+      (tc: any, i: number) => ({
+        id: tc?.id || `call_${vuelta}_${i}`,
+        type: 'function',
+        function: {
+          name: tc?.function?.name ?? 'desconocida',
+          arguments: tc?.function?.arguments ?? '{}',
+        },
+      })
     );
 
-    return { handled: true, responseText: followUp.message.content, sendError };
+    // Sin herramientas pedidas: es la respuesta final para el cliente.
+    if (toolCalls.length === 0) {
+      const texto = typeof msg.content === 'string' ? msg.content.trim() : '';
+      return responder(texto || respuestaDeRespaldo(false));
+    }
+
+    // El mensaje del asistente con sus tool_calls va ANTES de los resultados:
+    // el protocolo exige que cada resultado responda a un tool_call previo.
+    conversacion.push({ role: 'assistant', content: msg.content ?? null, tool_calls: toolCalls });
+
+    // En orden y de a una: dos reservas nunca compiten entre sí.
+    for (const toolCall of toolCalls) {
+      const nombre: string = toolCall.function.name;
+      herramientasUsadas.push(nombre);
+
+      let resultado: { data?: any; error?: string; [k: string]: unknown };
+      let args: Record<string, unknown> | null = null;
+
+      try {
+        const parseado = JSON.parse(toolCall.function.arguments || '{}');
+        // JSON.parse acepta "null", "5" o "[]": solo sirve un objeto con los parámetros.
+        if (parseado && typeof parseado === 'object' && !Array.isArray(parseado)) {
+          args = parseado;
+        } else {
+          resultado = { error: 'Los argumentos tienen que ser un objeto JSON con los parámetros de la herramienta.' };
+        }
+      } catch {
+        resultado = { error: 'Los argumentos no son JSON válido. Volvé a llamar a la herramienta con JSON correcto.' };
+      }
+
+      if (args !== null) {
+        try {
+          resultado = await deps.executeToolCall(nombre, args, {
+            tenantId: negocio.tenant_id,
+            tier: negocio.tier,
+            phone: incoming.from,
+          });
+        } catch {
+          resultado = { error: 'La herramienta falló. No se completó la acción: no la confirmes al cliente.' };
+        }
+      }
+
+      if (nombre === 'registrar_cita' && resultado!.data?.reservado) {
+        reservasHechas.push(resultado!.data as ReservaConfirmada);
+      }
+
+      conversacion.push({
+        role: 'tool' as const,
+        tool_call_id: toolCall.id,
+        content: JSON.stringify(resultado!),
+      });
+    }
   }
 
-  const sendError = await sendAndSaveAssistantMessage(
-    negocio,
-    conversation.id,
-    message.content,
-    incoming,
-    deps
-  );
-
-  return { handled: true, responseText: message.content, sendError };
+  // Se agotaron las vueltas o el tiempo sin una respuesta en texto.
+  return responder(respuestaDeRespaldo(false));
 }

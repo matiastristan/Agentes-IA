@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
     horarios?: Record<string, string>;
     instrucciones_adicionales?: string;
     color_palette?: string;
+    recordatorios_activos?: boolean;
   } = {};
 
   if (typeof body.tono_voz === 'string') update.tono_voz = body.tono_voz;
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     update.instrucciones_adicionales = body.instrucciones_adicionales;
   }
   if (typeof body.color_palette === 'string') update.color_palette = body.color_palette;
+  if (typeof body.recordatorios_activos === 'boolean') update.recordatorios_activos = body.recordatorios_activos;
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: 'Nada para actualizar' }, { status: 400 });

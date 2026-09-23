@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
 
 const DIAS = [
   { key: 'lunes', label: 'Lunes' },
@@ -24,15 +25,18 @@ export function ConfiguracionAgenteForm({
   tonoVozActual,
   horariosActuales,
   instruccionesActuales,
+  recordatoriosActivosActual,
 }: {
   tonoVozActual: string;
   horariosActuales: Record<string, string>;
   instruccionesActuales: string;
+  recordatoriosActivosActual: boolean;
 }) {
   const router = useRouter();
   const [tonoVoz, setTonoVoz] = useState(tonoVozActual);
   const [horarios, setHorarios] = useState<Record<string, string>>(horariosActuales);
   const [instrucciones, setInstrucciones] = useState(instruccionesActuales);
+  const [recordatorios, setRecordatorios] = useState(recordatoriosActivosActual);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -45,6 +49,7 @@ export function ConfiguracionAgenteForm({
         tono_voz: tonoVoz,
         horarios,
         instrucciones_adicionales: instrucciones,
+        recordatorios_activos: recordatorios,
       }),
     });
 
@@ -103,6 +108,21 @@ export function ConfiguracionAgenteForm({
           onChange={(e) => setInstrucciones(e.target.value)}
           placeholder="ej: Los sábados no se hacen descuentos. Si preguntan por cancelaciones, avisar que hay que avisar con 24hs de anticipación."
         />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium text-text-secondary">Recordatorios automáticos</label>
+        <div className="flex items-start gap-3">
+          <Toggle
+            checked={recordatorios}
+            onCheckedChange={setRecordatorios}
+            label="Activar recordatorios automáticos"
+          />
+          <p className="text-xs text-text-muted">
+            Cada día a las 10:00 se le avisa por WhatsApp a quien tenga turno al día siguiente, incluidos los
+            mensualizados. Si está apagado, el agente tiene prohibido prometerle un recordatorio al cliente.
+          </p>
+        </div>
       </div>
 
       <Button type="submit" disabled={loading} className="self-start">
